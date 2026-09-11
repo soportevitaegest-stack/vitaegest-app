@@ -4,6 +4,8 @@ import { Topbar } from "@/components/layout/Topbar";
 import { createClient } from "@/lib/supabase/server";
 import { fullName, initials, ageFrom, activeOrder } from "@/lib/utils/format";
 import { PatientActions } from "@/components/patients/PatientActions";
+import { PortalLinkButton } from "@/components/patients/PortalLinkButton";
+import { PortalSeguimiento } from "@/components/portal/PortalSeguimiento";
 import type { Patient } from "@/types/domain";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +44,7 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
   if (!patient) notFound();
   const p = patient as unknown as Patient;
 
-  const [{ data: evolutionsData }, { data: appointments }] = await Promise.all([
+  const [{ data: evolutionsData }, { data: appointments }, { data: tokenRow }] = await Promise.all([
     supabase
       .from("clinical_evolutions")
       .select(
@@ -57,7 +59,16 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
       .eq("patient_id", params.id)
       .order("start_at", { ascending: false })
       .limit(5),
+    supabase
+      .from("patient_portal_tokens")
+      .select("token")
+      .eq("patient_id", params.id)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle(),
   ]);
+
+  const portalToken = (tokenRow as { token?: string } | null)?.token ?? null;
 
   const evolutions = (evolutionsData ?? []) as unknown as EvolutionRow[];
   const bono = activeOrder(p.treatment_orders);
@@ -74,7 +85,10 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
           <Link href="/pacientes" className="text-[13px] font-semibold" style={{ color: "var(--primary-ink)" }}>
             ← Volver a pacientes
           </Link>
-          <PatientActions id={p.id} isActive={p.is_active} />
+          <div className="flex items-center gap-2 flex-wrap">
+            <PortalLinkButton patientId={p.id} patientName={name} phone={p.phone ?? null} token={portalToken} />
+            <PatientActions id={p.id} isActive={p.is_active} />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.4fr] gap-5 items-start">
@@ -216,6 +230,9 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
               )}
             </section>
           </div>
+        </div>
+        <div className="mt-5">
+          <PortalSeguimiento patientId={p.id} />
         </div>
       </main>
     </>
