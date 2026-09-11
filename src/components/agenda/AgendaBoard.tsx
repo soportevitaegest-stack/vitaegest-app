@@ -1,0 +1,201 @@
+"use client";
+
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import type { AppointmentRow, PatientLite, InsurerLite, OrderLite } from "@/types/agenda";
+import {
+  AREA_LABELS,
+  STATUS_META,
+  STATUS_ORDER,
+  AREA_FILTERS,
+  weekDays,
+  toDateKey,
+  addDays,
+  fmtDayChip,
+  fmtLongDate,
+  fmtTime,
+} from "@/lib/utils/agenda";
+import { updateAppointmentStatus } from "@/server/actions/appointments";
+import { NuevoTurnoForm } from "./NuevoTurnoForm";
+
+const navBtn =
+  "w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-ink hover:bg-surface-2 trans border border-line";
+const chip = "inline-flex items-center gap-1 rounded-full text-[11px] font-semibold px-2 py-0.5";
+
+export function AgendaBoard({
+  appointments,
+  patients,
+  insurers,
+  orders,
+}: {
+  appointments: AppointmentRow[];
+  patients: PatientLite[];
+  insurers: InsurerLite[];
+  orders: OrderLite[];
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [ref, setRef] = useState(() => new Date());
+  const [selected, setSelected] = useState(() => toDateKey(new Date()));
+  const [area, setArea] = useState("all");
+  const [showForm, setShowForm] = useState(false);
+
+  const days = useMemo(() => weekDays(ref), [ref]);
+
+  const countByDay = useMemo(() => {
+    const m: Record<string, number> = {};
+    appointments.forEach((a) => {
+      const k = toDateKey(new Date(a.start_at));
+      m[k] = (m[k] ?? 0) + 1;
+    });
+    return m;
+  }, [appointments]);
+
+  const dayAppts = useMemo(
+    () =>
+      appointments
+        .filter((a) => toDateKey(new Date(a.start_at)) === selected)
+        .filter((a) => area === "all" || a.area === area)
+        .sort((x, y) => x.start_at.localeCompare(y.start_at)),
+    [appointments, selected, area]
+  );
+
+  const onStatus = (id: string, status: string) =>
+    startTransition(async () => {
+      const res = await updateAppointmentStatus(id, status);
+      if (res?.error) alert("No se pudo cambiar el estado: " + res.error);
+      router.refresh();
+    });
+
+  const patientName = (a: AppointmentRow) =>
+    a.patients ? `${a.patients.first_name} ${a.patients.last_name}` : "Paciente";
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <button className={navBtn} onClick={() => setRef(addDays(ref, -7))} aria-label="Semana anterior">‹</button>
+          <button className={navBtn} onClick={() => setRef(addDays(ref, 7))} aria-label="Semana siguiente">›</button>
+          <button
+            className="rounded-lg px-3 h-8 text-[12.5px] font-semibold border border-line trans hover:bg-surface-2"
+            onClick={() => { const t = new Date(); setRef(t); setSelected(toDateKey(t)); }}
+          >
+            Hoy
+          </button>
+        </div>
+        <button
+          onClick={() => setShowForm((v) => !v)}
+          className="inline-flex items-center gap-1.5 font-semibold rounded-xl2 px-3.5 py-2 text-sm text-white trans"
+          style={{ background: "var(--teal)" }}
+        >
+          {showForm ? "Cerrar" : "+ Nuevo turno"}
+        </button>
+      </div>
+
+      {/* Chips de la semana */}
+      <div className="flex gap-2 flex-wrap">
+        {days.map((d) => {
+          const k = toDateKey(d);
+          const on = k === selected;
+          return (
+            <button
+              key={k}
+              onClick={() => setSelected(k)}
+              className="rounded-xl2 border px-3 py-2 text-center trans min-w-[86px]"
+              style={
+                on
+                  ? { background: "var(--primary-soft)", borderColor: "var(--primary)", color: "var(--primary-ink)" }
+                  : { background: "var(--surface)", borderColor: "var(--border)" }
+              }
+            >
+              <div className="text-[12.5px] font-semibold">{fmtDayChip(d)}</div>
+              <div className="text-[11px] text-muted">{countByDay[k] ?? 0} turnos</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Filtro por especialidad */}
+      <div className="flex items-center gap-1 p-1 rounded-xl2 w-fit" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+        {AREA_FILTERS.map((f) => {
+          const on = area === f.key;
+          return (
+            <button
+              key={f.key}
+              onClick={() => setArea(f.key)}
+              className="text-[12px] font-semibold px-2.5 py-1 rounded-lg trans"
+              style={on ? { background: "var(--surface)", color: "var(--ink)", boxShadow: "var(--shadow)" } : { color: "var(--muted)" }}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {showForm && (
+        <NuevoTurnoForm
+          patients={patients}
+          insurers={insurers}
+          orders={orders}
+          defaultDate={selected}
+          onDone={() => { setShowForm(false); router.refresh(); }}
+        />
+      )}
+
+      {/* Lista del día */}
+      <section className="bg-surface border border-line rounded-xl3 shadow-soft overflow-hidden">
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-display font-bold text-[15px]">{fmtLongDate(new Date(`${selected}T00:00:00`))}</h2>
+          <span className="text-xs text-muted font-medium">{dayAppts.length} turnos</span>
+        </div>
+
+        {dayAppts.length === 0 ? (
+          <div className="px-5 py-8 text-center text-[13px] text-muted">Sin turnos para este día / filtro.</div>
+        ) : (
+          <div className="divide-y" style={{ borderColor: "var(--border)" }}>
+            {dayAppts.map((a) => {
+              const st = STATUS_META[a.status];
+              return (
+                <div key={a.id} className="flex items-center gap-4 px-4 md:px-5 py-3.5">
+                  <div className="w-14 text-center shrink-0">
+                    <div className="font-display font-bold text-[15px] tnum leading-none">{fmtTime(a.start_at)}</div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-[14.5px] truncate">{patientName(a)}</div>
+                    <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                      <span className={chip} style={{ background: "var(--surface-2)", color: "var(--muted)", border: "1px solid var(--border)" }}>
+                        {AREA_LABELS[a.area]}
+                      </span>
+                      <span className={chip} style={a.coverage_type === "obra_social" ? { background: "var(--primary-soft)", color: "var(--primary-ink)" } : { background: "var(--surface-2)", color: "var(--muted)", border: "1px solid var(--border)" }}>
+                        {a.coverage_type === "obra_social" ? "Obra social" : "Particular"}
+                      </span>
+                      {a.treatment_order_id && (
+                        <span className={chip} style={{ background: "var(--primary-soft)", color: "var(--primary-ink)" }}>Bono</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className={chip} style={{ background: st.bg, color: st.fg }}>{st.label}</span>
+                  <select
+                    value={a.status}
+                    disabled={pending}
+                    onChange={(e) => onStatus(a.id, e.target.value)}
+                    className="bg-surface-2 border border-line rounded-lg px-2 py-1.5 text-[12.5px] outline-none focus:border-primary trans"
+                    title="Cambiar estado"
+                  >
+                    {STATUS_ORDER.map((s) => (
+                      <option key={s} value={s}>{STATUS_META[s].label}</option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <p className="text-[11.5px] text-muted leading-snug">
+        Al marcar un turno como <b>Atendido</b>, si tiene bono asociado se descuenta 1 sesión automáticamente (trigger en la base de datos).
+      </p>
+    </div>
+  );
+}

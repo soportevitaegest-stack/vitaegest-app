@@ -1,0 +1,76 @@
+import type { AppointmentStatus, SpecialtyArea } from "@/types/agenda";
+
+export const AREA_LABELS: Record<SpecialtyArea, string> = {
+  general: "General",
+  pelvic_perineal: "Uroginecología",
+  dermatofunctional: "Dermatofuncional",
+  sports: "Deportiva",
+  respiratory: "Respiratoria",
+  neuro: "Neuro",
+  other: "Otra",
+};
+
+export const STATUS_META: Record<AppointmentStatus, { label: string; bg: string; fg: string }> = {
+  pending: { label: "Pendiente", bg: "var(--amber-soft)", fg: "var(--amber)" },
+  confirmed: { label: "Confirmado", bg: "var(--primary-soft)", fg: "var(--primary-ink)" },
+  attended: { label: "Atendido", bg: "var(--emerald-soft)", fg: "var(--emerald-ink)" },
+  no_show: { label: "Ausente", bg: "var(--coral-soft)", fg: "var(--coral-ink)" },
+  cancelled: { label: "Cancelado", bg: "var(--rose-soft)", fg: "var(--rose)" },
+};
+
+export const STATUS_ORDER: AppointmentStatus[] = [
+  "pending",
+  "confirmed",
+  "attended",
+  "no_show",
+  "cancelled",
+];
+
+export const AREA_FILTERS: { key: string; label: string }[] = [
+  { key: "all", label: "Todas" },
+  { key: "pelvic_perineal", label: "Uroginecología" },
+  { key: "dermatofunctional", label: "Dermatofuncional" },
+  { key: "sports", label: "Deportiva" },
+  { key: "respiratory", label: "Respiratoria" },
+];
+
+export const AREA_OPTIONS: { key: SpecialtyArea; label: string }[] = [
+  { key: "pelvic_perineal", label: "Uroginecología" },
+  { key: "dermatofunctional", label: "Dermatofuncional" },
+  { key: "sports", label: "Deportiva" },
+  { key: "respiratory", label: "Respiratoria" },
+  { key: "general", label: "General" },
+];
+
+// --- Helpers de fecha (clave local yyyy-mm-dd) ---
+export const toDateKey = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+export const addDays = (d: Date, n: number) => {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+};
+
+// Lunes a sábado de la semana que contiene `ref`.
+export function weekDays(ref: Date): Date[] {
+  const dow = ref.getDay(); // 0 dom .. 6 sáb
+  const offsetToMonday = (dow + 6) % 7;
+  const monday = addDays(ref, -offsetToMonday);
+  return Array.from({ length: 6 }, (_, i) => addDays(monday, i));
+}
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+export const fmtDayChip = (d: Date) =>
+  cap(new Intl.DateTimeFormat("es-AR", { weekday: "short", day: "numeric" }).format(d));
+
+export const fmtLongDate = (d: Date) =>
+  cap(new Intl.DateTimeFormat("es-AR", { weekday: "long", day: "numeric", month: "long" }).format(d));
+
+export const fmtTime = (iso: string) =>
+  new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
