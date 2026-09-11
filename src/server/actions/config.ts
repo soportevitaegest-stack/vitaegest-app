@@ -107,6 +107,42 @@ export async function deleteService(id: string): Promise<Result> {
   return {};
 }
 
+// --- Plantilla de recordatorio (WhatsApp manual) ---
+// Guarda/actualiza la plantilla general del profesional en reminder_templates
+// (canal whatsapp_manual, marcada como is_default). La usa el botón de la agenda.
+export async function saveReminderTemplate(body: string): Promise<Result> {
+  const { supabase, user } = await withUser();
+  if (!user) return { error: "Sesión no válida." };
+  const text = body.trim();
+  if (!text) return { error: "El mensaje no puede estar vacío." };
+
+  const { data: existing } = await supabase
+    .from("reminder_templates")
+    .select("id")
+    .eq("professional_id", user.id)
+    .eq("is_default", true)
+    .limit(1)
+    .maybeSingle();
+
+  const res = existing
+    ? await supabase
+        .from("reminder_templates")
+        .update({ body: text, channel: "whatsapp_manual", name: "Recordatorio general" })
+        .eq("id", (existing as { id: string }).id)
+    : await supabase.from("reminder_templates").insert({
+        professional_id: user.id,
+        name: "Recordatorio general",
+        channel: "whatsapp_manual",
+        body: text,
+        is_default: true,
+      });
+
+  if (res.error) return { error: res.error.message };
+  revalidatePath("/configuracion");
+  revalidatePath("/agenda");
+  return {};
+}
+
 // --- Configuración de agenda ---
 export async function saveSchedule(d: {
   work_start: string;

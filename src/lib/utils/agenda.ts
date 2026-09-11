@@ -74,3 +74,30 @@ export const fmtLongDate = (d: Date) =>
 
 export const fmtTime = (iso: string) =>
   new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+
+// --- Recordatorios por WhatsApp (envío manual) ---
+
+// Plantilla por defecto si el profesional aún no guardó una en Configuración.
+export const DEFAULT_REMINDER_TEMPLATE =
+  "Hola {paciente}, te recordamos tu turno el {fecha} a las {hora} hs. ¡Te esperamos! 🙌";
+
+// Reemplaza {variables} de la plantilla por sus valores.
+export function fillTemplate(tpl: string, vars: Record<string, string>): string {
+  return (tpl || "").replace(/\{(\w+)\}/g, (_m, k: string) => vars[k] ?? `{${k}}`);
+}
+
+// Arma el link de WhatsApp (wa.me). Normaliza el teléfono a solo dígitos y
+// antepone el código de Argentina (54) si no lo trae. Devuelve null si no hay
+// teléfono cargado.
+export function waLink(phone: string | null | undefined, message: string): string | null {
+  if (!phone) return null;
+  let d = phone.replace(/\D/g, "");
+  if (!d) return null;
+  if (d.startsWith("00")) d = d.slice(2);
+  if (!d.startsWith("54")) d = "54" + d;
+  return `https://wa.me/${d}?text=${encodeURIComponent(message)}`;
+}
+
+// Fecha larga para el cuerpo del mensaje (ej: "lunes 8 de septiembre").
+export const fmtReminderDate = (iso: string) =>
+  new Intl.DateTimeFormat("es-AR", { weekday: "long", day: "numeric", month: "long" }).format(new Date(iso));

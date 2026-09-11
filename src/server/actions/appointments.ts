@@ -79,6 +79,34 @@ export async function createAppointment(
   return { ok: true };
 }
 
+// Edición de un turno ya creado: permite mover libremente día y horario,
+// además de duración, área y estado. Recalcula start_at / end_at.
+export async function updateAppointment(
+  id: string,
+  d: { date: string; time: string; duration: number; area: string; status: string }
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  if (!d.date || !d.time) return { error: "Ingresá fecha y horario." };
+
+  const startAt = new Date(`${d.date}T${d.time}:00`);
+  if (Number.isNaN(startAt.getTime())) return { error: "Fecha u horario inválidos." };
+  const endAt = new Date(startAt.getTime() + (d.duration || 45) * 60000);
+
+  const { error } = await supabase
+    .from("appointments")
+    .update({
+      start_at: startAt.toISOString(),
+      end_at: endAt.toISOString(),
+      area: d.area,
+      status: d.status,
+    })
+    .eq("id", id);
+
+  if (error) return { error: "No se pudo guardar el turno: " + error.message };
+  revalidatePath("/agenda");
+  return {};
+}
+
 // Cambia el estado del turno. Al pasar a 'attended', el trigger de la base
 // (trg_consume_order) descuenta 1 sesión del bono asociado, si lo hay.
 export async function updateAppointmentStatus(

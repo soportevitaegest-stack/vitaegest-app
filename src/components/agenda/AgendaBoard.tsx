@@ -17,14 +17,18 @@ import {
 } from "@/lib/utils/agenda";
 import { updateAppointmentStatus } from "@/server/actions/appointments";
 import { NuevoTurnoForm } from "./NuevoTurnoForm";
+import { EditarTurnoForm } from "./EditarTurnoForm";
+import { WhatsappReminderButton } from "./WhatsappReminderButton";
 
 const navBtn =
   "w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-ink hover:bg-surface-2 trans border border-line";
 const chip = "inline-flex items-center gap-1 rounded-full text-[11px] font-semibold px-2 py-0.5";
 
+// Rango horario visible y alto de cada franja (px).
 const H0 = 8;
 const H1 = 20;
-const PX = 54;
+const PX = 56;
+const GUT = 56; // ancho de la columna de horas
 const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 export function AgendaBoard({
@@ -33,12 +37,14 @@ export function AgendaBoard({
   insurers,
   orders,
   services,
+  reminderTemplate,
 }: {
   appointments: AppointmentRow[];
   patients: PatientLite[];
   insurers: InsurerLite[];
   orders: OrderLite[];
   services: ServiceLite[];
+  reminderTemplate: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -47,8 +53,11 @@ export function AgendaBoard({
   const [selected, setSelected] = useState(() => toDateKey(new Date()));
   const [area, setArea] = useState("all");
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<AppointmentRow | null>(null);
 
   const days = useMemo(() => weekDays(ref), [ref]);
+  const hours = useMemo(() => Array.from({ length: H1 - H0 + 1 }, (_, i) => H0 + i), []);
+  const trackH = (hours.length - 1) * PX; // alto útil de la grilla (última etiqueta al pie)
 
   const countByDay = useMemo(() => {
     const m: Record<string, number> = {};
@@ -85,8 +94,26 @@ export function AgendaBoard({
   const patientName = (a: AppointmentRow) =>
     a.patients ? `${a.patients.first_name} ${a.patients.last_name}` : "Paciente";
 
-  const hours = Array.from({ length: H1 - H0 + 1 }, (_, i) => H0 + i);
+  const openEdit = (a: AppointmentRow) => {
+    setShowForm(false);
+    setEditing(a);
+    setView("day");
+    setSelected(toDateKey(new Date(a.start_at)));
+  };
+
   const rangeLabel = `${days[0].getDate()}/${days[0].getMonth() + 1} – ${days[5].getDate()}/${days[5].getMonth() + 1}`;
+
+  // Posición vertical (px) de un turno dentro de la grilla, acotada al rango visible.
+  const blockGeom = (a: AppointmentRow) => {
+    const s = new Date(a.start_at);
+    const e = new Date(a.end_at);
+    const startH = s.getHours() + s.getMinutes() / 60;
+    const endH = e.getHours() + e.getMinutes() / 60;
+    const top = Math.max(0, (startH - H0) * PX);
+    const rawH = Math.max(0.5, endH - startH) * PX;
+    const height = Math.max(20, Math.min(rawH, trackH - top));
+    return { top, height };
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -116,7 +143,7 @@ export function AgendaBoard({
             })}
           </div>
           <button
-            onClick={() => setShowForm((v) => !v)}
+            onClick={() => { setEditing(null); setShowForm((v) => !v); }}
             className="inline-flex items-center gap-1.5 font-semibold rounded-xl2 px-3.5 py-2 text-sm text-white trans"
             style={{ background: "var(--teal)" }}
           >
@@ -126,11 +153,11 @@ export function AgendaBoard({
       </div>
 
       {/* Filtro por especialidad */}
-      <div className="flex items-center gap-1 p-1 rounded-xl2 w-fit" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+      <div className="flex items-center gap-1 p-1 rounded-xl2 w-fit overflow-x-auto max-w-full" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
         {AREA_FILTERS.map((f) => {
           const on = area === f.key;
           return (
-            <button key={f.key} onClick={() => setArea(f.key)} className="text-[12px] font-semibold px-2.5 py-1 rounded-lg trans"
+            <button key={f.key} onClick={() => setArea(f.key)} className="text-[12px] font-semibold px-2.5 py-1 rounded-lg trans whitespace-nowrap"
               style={on ? { background: "var(--surface)", color: "var(--ink)", boxShadow: "var(--shadow)" } : { color: "var(--muted)" }}>
               {f.label}
             </button>
@@ -149,58 +176,76 @@ export function AgendaBoard({
         />
       )}
 
+      {editing && (
+        <EditarTurnoForm appt={editing} onDone={() => { setEditing(null); router.refresh(); }} />
+      )}
+
       {view === "week" ? (
         /* ---------- Vista semanal ---------- */
         <div className="bg-surface border border-line rounded-xl3 shadow-soft overflow-hidden">
           <div className="overflow-x-auto">
             <div style={{ minWidth: 760 }}>
-              {/* Encabezado de días */}
-              <div className="grid border-b border-line" style={{ gridTemplateColumns: "56px repeat(6,1fr)" }}>
+              {/* Cabecera de días (fila separada, no comparte contexto con los bloques) */}
+              <div className="grid border-b border-line" style={{ gridTemplateColumns: `${GUT}px repeat(6,1fr)` }}>
                 <div />
                 {days.map((d, i) => {
                   const k = toDateKey(d);
                   const isToday = k === toDateKey(new Date());
                   return (
-                    <button key={k} onClick={() => { setSelected(k); setView("day"); }} className="text-center py-2.5 border-l border-line trans hover:bg-surface-2"
-                      style={isToday ? { background: "var(--primary-soft)" } : {}}>
+                    <button
+                      key={k}
+                      onClick={() => { setSelected(k); setView("day"); }}
+                      className="text-center py-2.5 border-l border-line trans hover:bg-surface-2"
+                      style={isToday ? { background: "var(--primary-soft)" } : {}}
+                    >
                       <div className="text-[11px] font-semibold text-muted uppercase">{DAY_LABELS[i]}</div>
                       <div className="font-display font-bold text-[15px] tnum" style={isToday ? { color: "var(--primary-ink)" } : {}}>{d.getDate()}</div>
                     </button>
                   );
                 })}
               </div>
-              {/* Grilla horaria */}
-              <div className="grid relative" style={{ gridTemplateColumns: "56px repeat(6,1fr)" }}>
-                <div>
-                  {hours.map((h) => (
-                    <div key={h} style={{ height: PX }} className="relative">
-                      <span className="absolute -top-2 right-2 text-[10.5px] text-muted tnum">{String(h).padStart(2, "0")}:00</span>
+
+              {/* Cuerpo: columna de horas + 6 pistas de día, cada una de alto fijo */}
+              <div className="grid pt-2.5" style={{ gridTemplateColumns: `${GUT}px repeat(6,1fr)` }}>
+                {/* Columna de horas */}
+                <div className="relative" style={{ height: trackH + PX / 2 }}>
+                  {hours.map((h, i) => (
+                    <div key={h} className="absolute right-2 text-[10.5px] text-muted tnum" style={{ top: i * PX, transform: "translateY(-50%)" }}>
+                      {String(h).padStart(2, "0")}:00
                     </div>
                   ))}
                 </div>
+
+                {/* Pistas por día */}
                 {days.map((d) => {
                   const k = toDateKey(d);
                   const isToday = k === toDateKey(new Date());
-                  const dayList = weekAppts.filter((a) => toDateKey(new Date(a.start_at)) === k);
+                  const list = weekAppts.filter((a) => toDateKey(new Date(a.start_at)) === k);
                   return (
-                    <div key={k} className="relative border-l border-line" style={isToday ? { background: "var(--primary-soft)" } : {}}>
-                      {hours.map((h) => <div key={h} style={{ height: PX }} className="border-b border-line" />)}
-                      {dayList.map((a) => {
-                        const start = new Date(a.start_at);
-                        const end = new Date(a.end_at);
-                        const top = (start.getHours() + start.getMinutes() / 60 - H0) * PX;
-                        const dur = Math.max(0.5, (end.getTime() - start.getTime()) / 3600000);
+                    <div
+                      key={k}
+                      className="relative border-l border-line overflow-hidden"
+                      style={{ height: trackH + PX / 2, background: isToday ? "var(--primary-soft)" : undefined }}
+                    >
+                      {/* líneas de hora */}
+                      {hours.map((h, i) => (
+                        <div key={h} className="absolute left-0 right-0 border-t border-line" style={{ top: i * PX }} />
+                      ))}
+                      {/* bloques de turno */}
+                      {list.map((a) => {
+                        const { top, height } = blockGeom(a);
                         const col = STATUS_META[a.status].fg;
                         return (
                           <button
                             key={a.id}
-                            onClick={() => { setSelected(k); setView("day"); }}
+                            onClick={() => openEdit(a)}
+                            title={`${patientName(a)} · ${fmtTime(a.start_at)} — tocá para editar`}
                             className="absolute left-1 right-1 rounded-lg px-2 py-1 text-left overflow-hidden trans hover:brightness-[1.03]"
-                            style={{ top, height: dur * PX - 4, background: "var(--surface)", border: "1px solid var(--border)", borderLeft: `3px solid ${col}` }}
+                            style={{ top, height, background: "var(--surface)", border: "1px solid var(--border)", borderLeft: `3px solid ${col}` }}
                           >
                             <div className="text-[10.5px] font-bold tnum leading-tight" style={{ color: col }}>{fmtTime(a.start_at)}</div>
                             <div className="text-[11.5px] font-semibold truncate leading-tight">{patientName(a).split(" ")[0]}</div>
-                            <div className="text-[10px] text-muted truncate">{AREA_LABELS[a.area]}</div>
+                            {height > 42 && <div className="text-[10px] text-muted truncate">{AREA_LABELS[a.area]}</div>}
                           </button>
                         );
                       })}
@@ -242,11 +287,11 @@ export function AgendaBoard({
                 {dayAppts.map((a) => {
                   const st = STATUS_META[a.status];
                   return (
-                    <div key={a.id} className="flex items-center gap-4 px-4 md:px-5 py-3.5">
+                    <div key={a.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3.5 flex-wrap">
                       <div className="w-14 text-center shrink-0">
                         <div className="font-display font-bold text-[15px] tnum leading-none">{fmtTime(a.start_at)}</div>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-[140px]">
                         <div className="font-semibold text-[14.5px] truncate">{patientName(a)}</div>
                         <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                           <span className={chip} style={{ background: "var(--surface-2)", color: "var(--muted)", border: "1px solid var(--border)" }}>{AREA_LABELS[a.area]}</span>
@@ -257,15 +302,25 @@ export function AgendaBoard({
                         </div>
                       </div>
                       <span className={chip} style={{ background: st.bg, color: st.fg }}>{st.label}</span>
-                      <select
-                        value={a.status}
-                        disabled={pending}
-                        onChange={(e) => onStatus(a.id, e.target.value)}
-                        className="bg-surface-2 border border-line rounded-lg px-2 py-1.5 text-[12.5px] outline-none focus:border-primary trans"
-                        title="Cambiar estado"
-                      >
-                        {STATUS_ORDER.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
-                      </select>
+                      <div className="flex items-center gap-2">
+                        <WhatsappReminderButton appt={a} template={reminderTemplate} />
+                        <button
+                          onClick={() => openEdit(a)}
+                          className="text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 border border-line trans hover:bg-surface-2"
+                          style={{ color: "var(--primary-ink)" }}
+                        >
+                          Editar
+                        </button>
+                        <select
+                          value={a.status}
+                          disabled={pending}
+                          onChange={(e) => onStatus(a.id, e.target.value)}
+                          className="bg-surface-2 border border-line rounded-lg px-2 py-1.5 text-[12.5px] outline-none focus:border-primary trans"
+                          title="Cambiar estado"
+                        >
+                          {STATUS_ORDER.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
+                        </select>
+                      </div>
                     </div>
                   );
                 })}
@@ -276,7 +331,7 @@ export function AgendaBoard({
       )}
 
       <p className="text-[11.5px] text-muted leading-snug">
-        Al marcar un turno como <b>Atendido</b>, si tiene bono asociado se descuenta 1 sesión automáticamente. Tocá un bloque de la vista semanal para abrir ese día y cambiar estados.
+        Tocá un turno de la vista semanal para <b>editar</b> día y horario. Al marcarlo como <b>Atendido</b>, si tiene bono asociado se descuenta 1 sesión automáticamente. El botón de WhatsApp abre el chat con el mensaje de recordatorio ya redactado.
       </p>
     </div>
   );

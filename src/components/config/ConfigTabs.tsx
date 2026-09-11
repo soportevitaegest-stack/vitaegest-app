@@ -5,6 +5,7 @@ import { PerfilForm } from "./PerfilForm";
 import { InsurersPanel, type Insurer } from "./InsurersPanel";
 import { ServicesPanel, type Service } from "./ServicesPanel";
 import { AgendaConfigForm, type ScheduleData } from "./AgendaConfigForm";
+import { WhatsappTemplateForm } from "./WhatsappTemplateForm";
 
 type Tab = "general" | "aranceles" | "agenda";
 
@@ -13,11 +14,13 @@ export function ConfigTabs({
   insurers,
   services,
   schedule,
+  reminderTemplate,
 }: {
   profile: { full_name: string; license_number: string; clinic_name: string; specialties: string[] };
   insurers: Insurer[];
   services: Service[];
   schedule: Partial<ScheduleData> | null;
+  reminderTemplate: string | null;
 }) {
   const [tab, setTab] = useState<Tab>("general");
   const TABS: [Tab, string][] = [
@@ -41,12 +44,15 @@ export function ConfigTabs({
       </div>
 
       {tab === "general" && (
-        <PerfilForm
-          fullName={profile.full_name}
-          license={profile.license_number}
-          clinic={profile.clinic_name}
-          specialties={profile.specialties}
-        />
+        <div className="flex flex-col gap-4">
+          <PerfilForm
+            fullName={profile.full_name}
+            license={profile.license_number}
+            clinic={profile.clinic_name}
+            specialties={profile.specialties}
+          />
+          <WhatsappTemplateForm initial={reminderTemplate} />
+        </div>
       )}
 
       {tab === "aranceles" && (

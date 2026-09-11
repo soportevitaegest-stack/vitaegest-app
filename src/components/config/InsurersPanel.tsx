@@ -25,6 +25,7 @@ export function InsurersPanel({ insurers }: { insurers: Insurer[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [editing, setEditing] = useState<Editing | null>(null);
+  const [showImport, setShowImport] = useState(false);
 
   const onSave = () =>
     editing &&
@@ -51,10 +52,56 @@ export function InsurersPanel({ insurers }: { insurers: Insurer[] }) {
           <h3 className="font-display font-bold text-[15px]">Obras sociales</h3>
           <p className="text-[12.5px] text-muted">{insurers.length} cargadas · con su coseguro y estampilla</p>
         </div>
-        <button onClick={() => setEditing({ ...EMPTY })} className="text-[12.5px] font-semibold rounded-xl2 px-3 py-2 text-white trans" style={{ background: "var(--teal)" }}>
-          + Agregar
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setShowImport(true)}
+            className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold rounded-xl2 px-3.5 py-2 trans border"
+            style={{ background: "var(--primary-soft)", color: "var(--primary-ink)", borderColor: "var(--primary)" }}
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Importar padrón de Obras Sociales
+          </button>
+          <button onClick={() => setEditing({ ...EMPTY })} className="text-[12.5px] font-semibold rounded-xl2 px-3 py-2 text-white trans" style={{ background: "var(--teal)" }}>
+            + Agregar
+          </button>
+        </div>
       </div>
+
+      {showImport && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(15,23,42,0.45)" }}
+          onClick={() => setShowImport(false)}
+        >
+          <div
+            className="bg-surface border border-line rounded-xl3 shadow-soft w-full max-w-sm p-5 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-3 w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "var(--primary-soft)", color: "var(--primary-ink)" }}>
+              <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </div>
+            <h4 className="font-display font-bold text-[16px] mb-1.5">Importación masiva</h4>
+            <p className="text-[13px] text-muted leading-snug mb-4">
+              Esta función permite cargar tu lista de obras sociales de forma masiva en la <b>versión completa</b>.
+            </p>
+            <button
+              onClick={() => setShowImport(false)}
+              className="w-full text-[13px] font-semibold rounded-xl2 px-4 py-2.5 text-white trans"
+              style={{ background: "var(--teal)" }}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
 
       {editing && (
         <div className="px-5 py-4 border-b border-line" style={{ background: "var(--surface-2)" }}>
