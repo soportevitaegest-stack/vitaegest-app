@@ -35,6 +35,7 @@ export type AppointmentRow = {
 
 export type PatientLite = { id: string; first_name: string; last_name: string };
 export type InsurerLite = { id: string; name: string };
+export type ServiceLite = { id: string; name: string; area: SpecialtyArea; price: number };
 export type OrderLite = {
   id: string;
   patient_id: string;

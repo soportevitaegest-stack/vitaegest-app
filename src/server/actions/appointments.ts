@@ -28,6 +28,9 @@ export async function createAppointment(
     coverage_type === "obra_social" ? String(formData.get("insurer_id") ?? "") || null : null;
   const treatment_order_id = String(formData.get("treatment_order_id") ?? "") || null;
   const reason = String(formData.get("reason") ?? "").trim() || null;
+  const service_id = String(formData.get("service_id") ?? "") || null;
+  const amount = Number(formData.get("amount") ?? 0) || 0;
+  const generatePayment = String(formData.get("generate_payment") ?? "") === "on";
 
   if (!patient_id) return { error: "Elegí un paciente." };
   if (!date || !time) return { error: "Ingresá fecha y horario." };
@@ -36,21 +39,41 @@ export async function createAppointment(
   if (Number.isNaN(startAt.getTime())) return { error: "Fecha u horario inválidos." };
   const endAt = new Date(startAt.getTime() + duration * 60000);
 
-  const { error } = await supabase.from("appointments").insert({
-    professional_id: user.id,
-    patient_id,
-    start_at: startAt.toISOString(),
-    end_at: endAt.toISOString(),
-    status,
-    area,
-    reason,
-    coverage_type,
-    insurer_id,
-    treatment_order_id,
-    source: "professional",
-  });
+  const { data: created, error } = await supabase
+    .from("appointments")
+    .insert({
+      professional_id: user.id,
+      patient_id,
+      start_at: startAt.toISOString(),
+      end_at: endAt.toISOString(),
+      status,
+      area,
+      reason,
+      coverage_type,
+      insurer_id,
+      treatment_order_id,
+      service_id,
+      source: "professional",
+    })
+    .select("id")
+    .single();
 
   if (error) return { error: "No se pudo crear el turno: " + error.message };
+
+  // Cobro pendiente automático con el valor de la prestación (opcional).
+  if (generatePayment && amount > 0) {
+    await supabase.from("payments").insert({
+      professional_id: user.id,
+      patient_id,
+      appointment_id: created?.id ?? null,
+      amount,
+      coverage_type,
+      insurer_id,
+      service_id,
+      status: "unpaid",
+    });
+    revalidatePath("/facturacion");
+  }
 
   revalidatePath("/agenda");
   return { ok: true };

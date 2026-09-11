@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import type { PatientLite, InsurerLite, OrderLite } from "@/types/agenda";
+import type { PatientLite, InsurerLite, OrderLite, ServiceLite } from "@/types/agenda";
 import { AREA_OPTIONS } from "@/lib/utils/agenda";
 import { createAppointment, type ApptActionState } from "@/server/actions/appointments";
 
 const input =
   "w-full bg-surface-2 border border-line rounded-xl2 px-3 py-2.5 text-sm text-ink outline-none focus:border-primary trans";
 const lbl = "block text-[12.5px] font-semibold text-ink mb-1.5";
+const money = (n: number) => "$" + Number(n || 0).toLocaleString("es-AR");
 
 function SubmitBtn() {
   const { pending } = useFormStatus();
@@ -29,12 +30,14 @@ export function NuevoTurnoForm({
   patients,
   insurers,
   orders,
+  services,
   defaultDate,
   onDone,
 }: {
   patients: PatientLite[];
   insurers: InsurerLite[];
   orders: OrderLite[];
+  services: ServiceLite[];
   defaultDate: string;
   onDone: () => void;
 }) {
@@ -43,17 +46,19 @@ export function NuevoTurnoForm({
   const [patientId, setPatientId] = useState(patients[0]?.id ?? "");
   const [coverage, setCoverage] = useState("particular");
   const [useBono, setUseBono] = useState(false);
+  const [serviceId, setServiceId] = useState("");
+  const [area, setArea] = useState<string>("pelvic_perineal");
+  const [genPayment, setGenPayment] = useState(true);
 
   const bono = useMemo(
     () =>
       orders.find(
-        (o) =>
-          o.patient_id === patientId &&
-          o.status === "active" &&
-          o.total_sessions - o.used_sessions > 0
+        (o) => o.patient_id === patientId && o.status === "active" && o.total_sessions - o.used_sessions > 0
       ),
     [orders, patientId]
   );
+  const service = useMemo(() => services.find((s) => s.id === serviceId), [services, serviceId]);
+  const price = service?.price ?? 0;
 
   useEffect(() => {
     if (state?.ok) {
@@ -77,6 +82,26 @@ export function NuevoTurnoForm({
         </select>
       </label>
 
+      {/* Prestación → define área y valor automático */}
+      <label className="block">
+        <span className={lbl}>Prestación (define área y valor)</span>
+        <select
+          name="service_id"
+          className={input}
+          value={serviceId}
+          onChange={(e) => {
+            setServiceId(e.target.value);
+            const s = services.find((x) => x.id === e.target.value);
+            if (s) setArea(s.area);
+          }}
+        >
+          <option value="">— Elegir del nomenclador —</option>
+          {services.map((s) => (
+            <option key={s.id} value={s.id}>{s.name} · {money(s.price)}</option>
+          ))}
+        </select>
+      </label>
+
       <div className="grid grid-cols-2 gap-3.5">
         <label className="block"><span className={lbl}>Fecha</span><input name="date" type="date" className={input} defaultValue={defaultDate} /></label>
         <label className="block"><span className={lbl}>Horario</span><input name="time" type="time" className={input} defaultValue="09:00" /></label>
@@ -94,7 +119,7 @@ export function NuevoTurnoForm({
         </label>
         <label className="block">
           <span className={lbl}>Área</span>
-          <select name="area" className={input} defaultValue="pelvic_perineal">
+          <select name="area" className={input} value={area} onChange={(e) => setArea(e.target.value)}>
             {AREA_OPTIONS.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
           </select>
         </label>
@@ -125,6 +150,16 @@ export function NuevoTurnoForm({
         <p className="text-[12px] text-muted">Este paciente no tiene bono activo.</p>
       )}
       <input type="hidden" name="treatment_order_id" value={useBono && bono ? bono.id : ""} />
+
+      {/* Valor + generar cobro */}
+      <div className="rounded-xl2 border p-3 flex items-center justify-between gap-3 flex-wrap" style={{ background: "var(--primary-soft)", borderColor: "transparent", color: "var(--primary-ink)" }}>
+        <span className="text-[13px]">Valor de la sesión: <b className="tnum">{money(price)}</b></span>
+        <label className="flex items-center gap-2 text-[12.5px] font-semibold cursor-pointer">
+          <input type="checkbox" name="generate_payment" checked={genPayment} onChange={(e) => setGenPayment(e.target.checked)} className="w-4 h-4" />
+          Generar cobro pendiente
+        </label>
+      </div>
+      <input type="hidden" name="amount" value={price} />
 
       <label className="block"><span className={lbl}>Motivo (opcional)</span><input name="reason" className={input} placeholder="Ej: control, primera consulta…" /></label>
 

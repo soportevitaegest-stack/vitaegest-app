@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Topbar } from "@/components/layout/Topbar";
 import { createClient } from "@/lib/supabase/server";
 import { fullName, initials, ageFrom, activeOrder } from "@/lib/utils/format";
+import { PatientActions } from "@/components/patients/PatientActions";
 import type { Patient } from "@/types/domain";
 
 export const dynamic = "force-dynamic";
@@ -69,10 +70,11 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
     <>
       <Topbar title="Ficha del paciente" subtitle={name} />
       <main className="flex-1 overflow-y-auto px-5 md:px-7 py-6" style={{ background: "var(--canvas)" }}>
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
           <Link href="/pacientes" className="text-[13px] font-semibold" style={{ color: "var(--primary-ink)" }}>
             ← Volver a pacientes
           </Link>
+          <PatientActions id={p.id} isActive={p.is_active} />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.4fr] gap-5 items-start">

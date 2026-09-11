@@ -47,3 +47,18 @@ export async function togglePatientActive(id: string, isActive: boolean): Promis
   revalidatePath("/pacientes");
   revalidatePath(`/pacientes/${id}`);
 }
+
+// Elimina el paciente. Si tiene turnos o cobros asociados, la FK (on delete
+// restrict) lo impide → devolvemos un mensaje sugiriendo desactivar.
+export async function deletePatient(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("patients").delete().eq("id", id);
+  if (error) {
+    return {
+      error:
+        "No se puede eliminar: el paciente tiene turnos o cobros asociados. Podés desactivarlo en su lugar.",
+    };
+  }
+  revalidatePath("/pacientes");
+  return {};
+}
