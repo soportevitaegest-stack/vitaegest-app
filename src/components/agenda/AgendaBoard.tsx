@@ -85,6 +85,15 @@ export function AgendaBoard({
     [appointments, area]
   );
 
+  // Bandeja: turnos que reservó el paciente (autogestión) y esperan confirmación.
+  const pendingSelf = useMemo(
+    () =>
+      appointments
+        .filter((a) => a.source === "patient" && a.status === "pending")
+        .sort((x, y) => x.start_at.localeCompare(y.start_at)),
+    [appointments]
+  );
+
   const onStatus = (id: string, status: string) =>
     startTransition(async () => {
       const res = await updateAppointmentStatus(id, status);
@@ -152,6 +161,32 @@ export function AgendaBoard({
           </button>
         </div>
       </div>
+
+      {/* Bandeja de autoagendados pendientes de confirmación */}
+      {pendingSelf.length > 0 && (
+        <div className="rounded-xl3 border p-4" style={{ background: "var(--amber-soft)", borderColor: "var(--amber)" }}>
+          <h3 className="font-display font-bold text-[13.5px] mb-2.5 flex items-center gap-2" style={{ color: "var(--amber)" }}>
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-[11px]" style={{ background: "var(--amber)" }}>{pendingSelf.length}</span>
+            Turnos reservados por pacientes · a confirmar
+          </h3>
+          <div className="flex flex-col gap-2">
+            {pendingSelf.map((a) => (
+              <div key={a.id} className="flex items-center gap-3 rounded-xl2 border border-line px-3 py-2 flex-wrap" style={{ background: "var(--surface)" }}>
+                <span className="text-[12.5px] font-bold tnum whitespace-nowrap">{fmtDayChip(new Date(a.start_at))} · {fmtTime(a.start_at)}</span>
+                <span className="text-[13px] font-semibold flex-1 min-w-[120px] truncate">{patientName(a)}</span>
+                {a.reason && <span className="text-[12px] text-muted truncate max-w-[220px]">{a.reason}</span>}
+                <button
+                  onClick={() => openEdit(a)}
+                  className="text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 text-white trans"
+                  style={{ background: "var(--teal)" }}
+                >
+                  Revisar y completar
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filtro por especialidad */}
       <div className="flex items-center gap-1 p-1 rounded-xl2 w-fit overflow-x-auto max-w-full" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
