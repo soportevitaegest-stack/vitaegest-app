@@ -144,13 +144,22 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
             <section className={card}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[12px] font-semibold text-muted uppercase tracking-wide">Historia clínica · evoluciones</h3>
-                <Link
-                  href={`/pacientes/${p.id}/evoluciones/nueva`}
-                  className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 text-white trans"
-                  style={{ background: "var(--teal)" }}
-                >
-                  + Nueva evolución
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/pacientes/${p.id}/evaluaciones`}
+                    className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 trans border border-line"
+                    style={{ background: "var(--surface-2)", color: "var(--primary-ink)" }}
+                  >
+                    Ficha especializada
+                  </Link>
+                  <Link
+                    href={`/pacientes/${p.id}/evoluciones/nueva`}
+                    className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 text-white trans"
+                    style={{ background: "var(--teal)" }}
+                  >
+                    + Nueva evolución
+                  </Link>
+                </div>
               </div>
 
               {evolutions.length ? (
