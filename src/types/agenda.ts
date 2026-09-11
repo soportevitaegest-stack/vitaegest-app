@@ -31,6 +31,14 @@ export type AppointmentRow = {
   treatment_order_id: string | null;
   source: string;
   patients: { first_name: string; last_name: string; phone: string | null } | null;
+  // Opcionales (según el select de cada página): prestación y orden/bono ligado.
+  service_id?: string | null;
+  treatment_orders?: {
+    order_number: string | null;
+    total_sessions: number;
+    used_sessions: number;
+    status: string;
+  } | null;
 };
 
 export type PatientLite = { id: string; first_name: string; last_name: string };

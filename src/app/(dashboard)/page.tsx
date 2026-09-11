@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Topbar } from "@/components/layout/Topbar";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_META, AREA_LABELS, fmtTime } from "@/lib/utils/agenda";
+import { dayRangeUtc, todayKey } from "@/lib/utils/tz";
 import type { AppointmentRow } from "@/types/agenda";
 
 export const dynamic = "force-dynamic";
@@ -21,20 +22,17 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub: 
 export default async function InicioPage() {
   const supabase = await createClient();
 
-  // Rango de "hoy" (TZ del runtime; para el demo alcanza).
-  const startToday = new Date();
-  startToday.setHours(0, 0, 0, 0);
-  const startTomorrow = new Date(startToday);
-  startTomorrow.setDate(startToday.getDate() + 1);
-  const todayDate = new Date().toISOString().slice(0, 10);
+  // Rango de "hoy" en horario Argentina (ART), traducido a UTC para la query.
+  const todayDate = todayKey();
+  const { start: startTodayIso, end: startTomorrowIso } = dayRangeUtc(todayDate);
 
   const [{ data: apptsData }, { data: pendData }, { data: plansData }, { data: itemsData }, { data: logsData }] =
     await Promise.all([
       supabase
         .from("appointments")
         .select("id, start_at, end_at, status, area, reason, coverage_type, insurer_id, treatment_order_id, source, patients(first_name, last_name)")
-        .gte("start_at", startToday.toISOString())
-        .lt("start_at", startTomorrow.toISOString())
+        .gte("start_at", startTodayIso)
+        .lt("start_at", startTomorrowIso)
         .order("start_at", { ascending: true }),
       supabase.from("payments").select("total_amount, status").in("status", ["unpaid", "partial"]),
       supabase.from("exercise_plans").select("id, patient_id").eq("is_active", true),

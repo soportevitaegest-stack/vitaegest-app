@@ -17,7 +17,7 @@ export default async function AgendaPage() {
       supabase
         .from("appointments")
         .select(
-          "id, start_at, end_at, status, area, reason, coverage_type, insurer_id, treatment_order_id, source, patients(first_name, last_name, phone)"
+          "id, start_at, end_at, status, area, reason, coverage_type, insurer_id, treatment_order_id, service_id, source, patients(first_name, last_name, phone), treatment_orders(order_number, total_sessions, used_sessions, status)"
         )
         .order("start_at", { ascending: true }),
       supabase.from("patients").select("id, first_name, last_name").order("last_name"),

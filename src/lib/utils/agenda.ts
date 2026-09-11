@@ -1,4 +1,7 @@
+import { formatInTimeZone } from "date-fns-tz";
+import { es } from "date-fns/locale";
 import type { AppointmentStatus, SpecialtyArea } from "@/types/agenda";
+import { TZ, dateKeyInTZ } from "./tz";
 
 export const AREA_LABELS: Record<SpecialtyArea, string> = {
   general: "General",
@@ -42,13 +45,9 @@ export const AREA_OPTIONS: { key: SpecialtyArea; label: string }[] = [
   { key: "general", label: "General" },
 ];
 
-// --- Helpers de fecha (clave local yyyy-mm-dd) ---
-export const toDateKey = (d: Date) => {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-};
+// --- Helpers de fecha (clave yyyy-mm-dd en horario Argentina) ---
+// Clave del día en ART, sin importar el TZ del runtime/navegador.
+export const toDateKey = (d: Date) => dateKeyInTZ(d);
 
 export const addDays = (d: Date, n: number) => {
   const x = new Date(d);
@@ -66,14 +65,12 @@ export function weekDays(ref: Date): Date[] {
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export const fmtDayChip = (d: Date) =>
-  cap(new Intl.DateTimeFormat("es-AR", { weekday: "short", day: "numeric" }).format(d));
+export const fmtDayChip = (d: Date) => cap(formatInTimeZone(d, TZ, "EEE d", { locale: es }));
 
 export const fmtLongDate = (d: Date) =>
-  cap(new Intl.DateTimeFormat("es-AR", { weekday: "long", day: "numeric", month: "long" }).format(d));
+  cap(formatInTimeZone(d, TZ, "EEEE d 'de' MMMM", { locale: es }));
 
-export const fmtTime = (iso: string) =>
-  new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+export const fmtTime = (iso: string) => formatInTimeZone(new Date(iso), TZ, "HH:mm");
 
 // --- Recordatorios por WhatsApp (envío manual) ---
 
@@ -98,6 +95,6 @@ export function waLink(phone: string | null | undefined, message: string): strin
   return `https://wa.me/${d}?text=${encodeURIComponent(message)}`;
 }
 
-// Fecha larga para el cuerpo del mensaje (ej: "lunes 8 de septiembre").
+// Fecha larga para el cuerpo del mensaje (ej: "lunes 8 de septiembre"), en ART.
 export const fmtReminderDate = (iso: string) =>
-  new Intl.DateTimeFormat("es-AR", { weekday: "long", day: "numeric", month: "long" }).format(new Date(iso));
+  cap(formatInTimeZone(new Date(iso), TZ, "EEEE d 'de' MMMM", { locale: es }));

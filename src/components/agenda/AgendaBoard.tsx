@@ -15,6 +15,7 @@ import {
   fmtLongDate,
   fmtTime,
 } from "@/lib/utils/agenda";
+import { clockInTZ } from "@/lib/utils/tz";
 import { updateAppointmentStatus } from "@/server/actions/appointments";
 import { NuevoTurnoForm } from "./NuevoTurnoForm";
 import { EditarTurnoForm } from "./EditarTurnoForm";
@@ -105,10 +106,10 @@ export function AgendaBoard({
 
   // Posición vertical (px) de un turno dentro de la grilla, acotada al rango visible.
   const blockGeom = (a: AppointmentRow) => {
-    const s = new Date(a.start_at);
-    const e = new Date(a.end_at);
-    const startH = s.getHours() + s.getMinutes() / 60;
-    const endH = e.getHours() + e.getMinutes() / 60;
+    const s = clockInTZ(a.start_at);
+    const e = clockInTZ(a.end_at);
+    const startH = s.h + s.m / 60;
+    const endH = e.h + e.m / 60;
     const top = Math.max(0, (startH - H0) * PX);
     const rawH = Math.max(0.5, endH - startH) * PX;
     const height = Math.max(20, Math.min(rawH, trackH - top));
@@ -169,7 +170,6 @@ export function AgendaBoard({
         <NuevoTurnoForm
           patients={patients}
           insurers={insurers}
-          orders={orders}
           services={services}
           defaultDate={selected}
           onDone={() => { setShowForm(false); router.refresh(); }}
@@ -177,7 +177,12 @@ export function AgendaBoard({
       )}
 
       {editing && (
-        <EditarTurnoForm appt={editing} onDone={() => { setEditing(null); router.refresh(); }} />
+        <EditarTurnoForm
+          appt={editing}
+          services={services}
+          insurers={insurers}
+          onDone={() => { setEditing(null); router.refresh(); }}
+        />
       )}
 
       {view === "week" ? (
