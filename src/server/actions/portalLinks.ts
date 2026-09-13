@@ -7,8 +7,11 @@ import { createClient } from "@/lib/supabase/server";
 // Reutiliza el token activo del paciente o crea uno nuevo (la columna `token`
 // tiene default gen_random_bytes; el índice único garantiza uno activo por
 // paciente, así que primero reusamos el existente).
+// scope: "both" = piso pélvico (turnos + ejercicios + diario);
+//        "exercises" = dermatofuncional (turnos + ejercicios/pautas, sin diario).
 export async function ensurePortalToken(
-  patientId: string
+  patientId: string,
+  scope: "both" | "exercises" = "both"
 ): Promise<{ token?: string; error?: string }> {
   const supabase = await createClient();
   const {
@@ -18,19 +21,23 @@ export async function ensurePortalToken(
 
   const { data: existing } = await supabase
     .from("patient_portal_tokens")
-    .select("token")
+    .select("id, token")
     .eq("patient_id", patientId)
     .eq("is_active", true)
     .limit(1)
     .maybeSingle();
 
-  if ((existing as { token?: string } | null)?.token) {
-    return { token: (existing as { token: string }).token };
+  const ex = existing as { id: string; token: string } | null;
+  if (ex?.token) {
+    // Actualiza el tipo de seguimiento por si el profesional lo cambió.
+    await supabase.from("patient_portal_tokens").update({ scope }).eq("id", ex.id);
+    revalidatePath(`/pacientes/${patientId}`);
+    return { token: ex.token };
   }
 
   const { data, error } = await supabase
     .from("patient_portal_tokens")
-    .insert({ professional_id: user.id, patient_id: patientId, scope: "both" })
+    .insert({ professional_id: user.id, patient_id: patientId, scope })
     .select("token")
     .single();
 

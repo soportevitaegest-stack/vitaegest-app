@@ -16,7 +16,7 @@ export default async function ConfiguracionPage() {
   const [{ data: prof }, { data: insurers }, { data: services }, { data: schedule }, { data: tpl }] =
     await Promise.all([
       user
-        ? supabase.from("professionals").select("full_name, license_number, clinic_name, specialties").eq("id", user.id).single()
+        ? supabase.from("professionals").select("full_name, license_number, clinic_name, specialties, booking_slug").eq("id", user.id).single()
         : Promise.resolve({ data: null }),
       supabase.from("insurers").select("id, name, plan, region, default_copay, default_stamp").order("name"),
       supabase.from("services").select("id, name, area, price, duration_min").order("name"),
@@ -40,13 +40,14 @@ export default async function ConfiguracionPage() {
 
   const reminderTemplate = (tpl as { body?: string } | null)?.body ?? null;
 
-  const p = (prof as { full_name?: string; license_number?: string; clinic_name?: string; specialties?: string[] } | null) ?? {};
+  const p = (prof as { full_name?: string; license_number?: string; clinic_name?: string; specialties?: string[]; booking_slug?: string } | null) ?? {};
   const profile = {
     full_name: p.full_name ?? "",
     license_number: p.license_number ?? "",
     clinic_name: p.clinic_name ?? "",
     specialties: (p.specialties ?? []) as string[],
   };
+  const bookingSlug = p.booking_slug ?? null;
 
   return (
     <>
@@ -58,6 +59,7 @@ export default async function ConfiguracionPage() {
           services={(services ?? []) as Service[]}
           schedule={(schedule ?? null) as Partial<ScheduleData> | null}
           reminderTemplate={reminderTemplate}
+          bookingSlug={bookingSlug}
         />
       </main>
     </>

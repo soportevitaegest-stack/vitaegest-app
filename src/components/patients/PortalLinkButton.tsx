@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { ensurePortalToken } from "@/server/actions/portalLinks";
 import { waLink } from "@/lib/utils/agenda";
 
-// Ícono WhatsApp (glifo) heredando color.
+type Scope = "both" | "exercises";
+
 function WaIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} fill="currentColor" aria-hidden>
@@ -13,19 +14,27 @@ function WaIcon({ className }: { className?: string }) {
   );
 }
 
+const SCOPES: [Scope, string, string][] = [
+  ["both", "Piso pélvico", "Turnos, ejercicios y diario miccional"],
+  ["exercises", "Dermatofuncional", "Turnos y ejercicios/pautas (sin diario)"],
+];
+
 export function PortalLinkButton({
   patientId,
   patientName,
   phone,
   token: initialToken,
+  scope: initialScope,
 }: {
   patientId: string;
   patientName: string;
   phone: string | null;
   token: string | null;
+  scope: string | null;
 }) {
   const [pending, start] = useTransition();
   const [token, setToken] = useState<string | null>(initialToken);
+  const [scope, setScope] = useState<Scope>((initialScope as Scope) === "exercises" ? "exercises" : "both");
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,15 +42,23 @@ export function PortalLinkButton({
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const link = token ? `${origin}/p/${token}` : "";
   const first = patientName.split(" ")[0] || "";
-  const message = `¡Hola ${first}! 👋 Este es tu portal de seguimiento de VitaeGest. Desde acá podés pedir turnos, ver tus ejercicios y cargar tu diario: ${link}`;
+  const message = `¡Hola ${first}! 👋 Este es tu portal de seguimiento de VitaeGest. Desde acá podés pedir turnos, ver tus ejercicios y seguir tu tratamiento: ${link}`;
 
-  const generate = () =>
+  const generate = (s: Scope) =>
     start(async () => {
       setError(null);
-      const res = await ensurePortalToken(patientId);
+      const res = await ensurePortalToken(patientId, s);
       if (res.error) { setError(res.error); return; }
       setToken(res.token ?? null);
+      setScope(s);
       setOpen(true);
+    });
+
+  const changeScope = (s: Scope) =>
+    start(async () => {
+      setScope(s);
+      const res = await ensurePortalToken(patientId, s);
+      if (res.error) setError(res.error);
     });
 
   const copy = async () => {
@@ -60,19 +77,52 @@ export function PortalLinkButton({
     window.open(l, "_blank", "noopener,noreferrer");
   };
 
-  // Sin token todavía: un solo botón para generarlo.
+  const ScopePicker = () => (
+    <div className="grid grid-cols-2 gap-2">
+      {SCOPES.map(([k, label, desc]) => {
+        const on = scope === k;
+        return (
+          <button
+            key={k}
+            onClick={() => (token ? changeScope(k) : setScope(k))}
+            disabled={pending}
+            className="text-left rounded-xl2 border p-2.5 trans disabled:opacity-50"
+            style={on ? { background: "var(--primary-soft)", borderColor: "var(--primary)" } : { background: "var(--surface-2)", borderColor: "var(--border)" }}
+          >
+            <span className="block text-[12.5px] font-semibold" style={on ? { color: "var(--primary-ink)" } : {}}>{label}</span>
+            <span className="block text-[10.5px] text-muted leading-tight mt-0.5">{desc}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // Sin token todavía.
   if (!token) {
     return (
-      <div className="flex flex-col items-end">
+      <div className="relative">
         <button
-          onClick={generate}
-          disabled={pending}
-          className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 border trans disabled:opacity-50"
+          onClick={() => setOpen((v) => !v)}
+          className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 border trans"
           style={{ background: "var(--primary-soft)", color: "var(--primary-ink)", borderColor: "var(--primary)" }}
         >
-          🔗 {pending ? "Generando…" : "Generar enlace del portal"}
+          🔗 Generar enlace del portal
         </button>
-        {error && <span className="text-[11px] mt-1" style={{ color: "var(--rose)" }}>{error}</span>}
+        {open && (
+          <div className="absolute right-0 mt-2 z-20 w-[min(92vw,340px)] bg-surface border border-line rounded-xl3 shadow-soft p-4">
+            <p className="text-[12.5px] font-semibold mb-2">Tipo de seguimiento</p>
+            <ScopePicker />
+            <button
+              onClick={() => generate(scope)}
+              disabled={pending}
+              className="w-full mt-3 text-[12.5px] font-semibold rounded-xl2 px-3 py-2 text-white trans disabled:opacity-50"
+              style={{ background: "var(--teal)" }}
+            >
+              {pending ? "Generando…" : "Generar enlace"}
+            </button>
+            {error && <p className="text-[11px] mt-2" style={{ color: "var(--rose)" }}>{error}</p>}
+          </div>
+        )}
       </div>
     );
   }
@@ -93,22 +143,16 @@ export function PortalLinkButton({
           <div className="flex items-center gap-2 rounded-xl2 border border-line px-2.5 py-2 mb-3" style={{ background: "var(--surface-2)" }}>
             <span className="text-[11.5px] text-muted truncate flex-1">{link}</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={copy}
-              className="text-[12.5px] font-semibold rounded-xl2 px-3 py-2 border border-line trans"
-              style={{ background: "var(--surface-2)", color: "var(--ink)" }}
-            >
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <button onClick={copy} className="text-[12.5px] font-semibold rounded-xl2 px-3 py-2 border border-line trans" style={{ background: "var(--surface-2)", color: "var(--ink)" }}>
               {copied ? "✓ Copiado" : "Copiar link"}
             </button>
-            <button
-              onClick={sendWa}
-              className="inline-flex items-center justify-center gap-1.5 text-[12.5px] font-semibold rounded-xl2 px-3 py-2 text-white trans"
-              style={{ background: "#25D366" }}
-            >
+            <button onClick={sendWa} className="inline-flex items-center justify-center gap-1.5 text-[12.5px] font-semibold rounded-xl2 px-3 py-2 text-white trans" style={{ background: "#25D366" }}>
               <WaIcon className="w-4 h-4" /> WhatsApp
             </button>
           </div>
+          <p className="text-[12px] font-semibold mb-1.5">Tipo de seguimiento</p>
+          <ScopePicker />
           {error && <p className="text-[11px] mt-2" style={{ color: "var(--rose)" }}>{error}</p>}
           <p className="text-[11px] text-muted mt-2 leading-snug">Cualquiera con este enlace puede ver y cargar datos del paciente. Compartilo solo con él/ella.</p>
         </div>

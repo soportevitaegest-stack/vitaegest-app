@@ -28,10 +28,17 @@ function minusDays(key: string, n: number): string {
   return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
 }
 
-export async function PortalSeguimiento({ patientId }: { patientId: string }) {
+export async function PortalSeguimiento({
+  patientId,
+  scope,
+}: {
+  patientId: string;
+  scope?: string | null;
+}) {
   const supabase = await createClient();
   const today = todayKey();
   const since = minusDays(today, 6);
+  const showDiary = scope !== "exercises"; // dermato = sin diario miccional
 
   const { data: planRow } = await supabase
     .from("exercise_plans")
@@ -91,7 +98,7 @@ export async function PortalSeguimiento({ patientId }: { patientId: string }) {
   }
 
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <section className={`grid grid-cols-1 gap-5 ${showDiary ? "lg:grid-cols-2" : ""}`}>
       {/* Plan de ejercicios + adherencia */}
       <div className={card}>
         <div className="flex items-center justify-between mb-3">
@@ -140,7 +147,8 @@ export async function PortalSeguimiento({ patientId }: { patientId: string }) {
         )}
       </div>
 
-      {/* Diario miccional */}
+      {/* Diario miccional (solo piso pélvico) */}
+      {showDiary && (
       <div className={card}>
         <h3 className="text-[12px] font-semibold text-muted uppercase tracking-wide mb-3">Diario miccional · últimos registros</h3>
         {entries.length === 0 ? (
@@ -172,6 +180,7 @@ export async function PortalSeguimiento({ patientId }: { patientId: string }) {
           </div>
         )}
       </div>
+      )}
     </section>
   );
 }

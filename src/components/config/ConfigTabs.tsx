@@ -6,6 +6,7 @@ import { InsurersPanel, type Insurer } from "./InsurersPanel";
 import { ServicesPanel, type Service } from "./ServicesPanel";
 import { AgendaConfigForm, type ScheduleData } from "./AgendaConfigForm";
 import { WhatsappTemplateForm } from "./WhatsappTemplateForm";
+import { PublicBookingLink } from "./PublicBookingLink";
 
 type Tab = "general" | "aranceles" | "agenda";
 
@@ -15,12 +16,14 @@ export function ConfigTabs({
   services,
   schedule,
   reminderTemplate,
+  bookingSlug,
 }: {
   profile: { full_name: string; license_number: string; clinic_name: string; specialties: string[] };
   insurers: Insurer[];
   services: Service[];
   schedule: Partial<ScheduleData> | null;
   reminderTemplate: string | null;
+  bookingSlug: string | null;
 }) {
   const [tab, setTab] = useState<Tab>("general");
   const TABS: [Tab, string][] = [
@@ -62,7 +65,12 @@ export function ConfigTabs({
         </div>
       )}
 
-      {tab === "agenda" && <AgendaConfigForm initial={schedule} />}
+      {tab === "agenda" && (
+        <div className="flex flex-col gap-4">
+          <PublicBookingLink slug={bookingSlug} />
+          <AgendaConfigForm initial={schedule} />
+        </div>
+      )}
     </div>
   );
 }

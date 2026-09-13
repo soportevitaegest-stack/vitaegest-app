@@ -24,13 +24,31 @@ export type PortalPlan = {
   area: string;
 } | null;
 
+export type PortalAppointment = {
+  id: string;
+  start_at: string;
+  status: string;
+  area: string;
+  reason: string | null;
+};
+
+// scope del token: define qué módulos ve el paciente.
+//   "both"      → turnos + ejercicios + diario miccional (piso pélvico)
+//   "exercises" → turnos + ejercicios/pautas (dermatofuncional, sin diario)
+export type PortalScope = "both" | "exercises" | string;
+
 export type PortalContext = {
   patient: { first_name: string } | null;
+  scope: PortalScope;
   plan: PortalPlan;
   items: PortalItem[];
   logs_today: PortalLog[];
   checkins: PortalCheckin[];
+  appointments: PortalAppointment[];
 };
 
-// Slot de disponibilidad (portal_available_slots).
+// Slot de disponibilidad (portal_available_slots / public_booking_slots).
 export type Slot = { time: string; free: boolean };
+
+// ¿El scope incluye el diario miccional?
+export const scopeHasDiary = (scope: PortalScope) => scope !== "exercises";

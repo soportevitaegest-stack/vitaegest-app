@@ -61,14 +61,16 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
       .limit(5),
     supabase
       .from("patient_portal_tokens")
-      .select("token")
+      .select("token, scope")
       .eq("patient_id", params.id)
       .eq("is_active", true)
       .limit(1)
       .maybeSingle(),
   ]);
 
-  const portalToken = (tokenRow as { token?: string } | null)?.token ?? null;
+  const tok = tokenRow as { token?: string; scope?: string } | null;
+  const portalToken = tok?.token ?? null;
+  const portalScope = tok?.scope ?? null;
 
   const evolutions = (evolutionsData ?? []) as unknown as EvolutionRow[];
   const bono = activeOrder(p.treatment_orders);
@@ -86,7 +88,7 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
             ← Volver a pacientes
           </Link>
           <div className="flex items-center gap-2 flex-wrap">
-            <PortalLinkButton patientId={p.id} patientName={name} phone={p.phone ?? null} token={portalToken} />
+            <PortalLinkButton patientId={p.id} patientName={name} phone={p.phone ?? null} token={portalToken} scope={portalScope} />
             <PatientActions id={p.id} isActive={p.is_active} />
           </div>
         </div>
@@ -232,7 +234,7 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
           </div>
         </div>
         <div className="mt-5">
-          <PortalSeguimiento patientId={p.id} />
+          <PortalSeguimiento patientId={p.id} scope={portalScope} />
         </div>
       </main>
     </>

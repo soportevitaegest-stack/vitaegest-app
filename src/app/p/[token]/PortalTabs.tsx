@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { PortalContext } from "@/types/portal";
+import { scopeHasDiary, type PortalContext } from "@/types/portal";
 import { PortalBooking } from "@/components/portal/PortalBooking";
 import { PortalExercises } from "@/components/portal/PortalExercises";
 import { PortalDiary } from "@/components/portal/PortalDiary";
@@ -9,16 +9,18 @@ import { PortalDiary } from "@/components/portal/PortalDiary";
 type Tab = "turnos" | "ejercicios" | "diario";
 
 export function PortalTabs({ token, ctx }: { token: string; ctx: PortalContext }) {
+  const showDiary = scopeHasDiary(ctx.scope);
   const [tab, setTab] = useState<Tab>("turnos");
+
   const TABS: [Tab, string, string][] = [
-    ["turnos", "Turnos", "📅"],
+    ["turnos", "Mis turnos", "📅"],
     ["ejercicios", "Ejercicios", "🏃"],
-    ["diario", "Diario", "📝"],
+    ...(showDiary ? ([["diario", "Diario", "📝"]] as [Tab, string, string][]) : []),
   ];
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-1 p-1 rounded-xl2 bg-surface border border-line shadow-soft">
+      <div className={`grid gap-1 p-1 rounded-xl2 bg-surface border border-line shadow-soft ${showDiary ? "grid-cols-3" : "grid-cols-2"}`}>
         {TABS.map(([k, label, icon]) => {
           const on = tab === k;
           return (
@@ -35,9 +37,11 @@ export function PortalTabs({ token, ctx }: { token: string; ctx: PortalContext }
         })}
       </div>
 
-      {tab === "turnos" && <PortalBooking token={token} defaultArea={ctx.plan?.area ?? "general"} />}
+      {tab === "turnos" && (
+        <PortalBooking token={token} appointments={ctx.appointments} defaultArea={ctx.plan?.area ?? "general"} />
+      )}
       {tab === "ejercicios" && <PortalExercises token={token} ctx={ctx} />}
-      {tab === "diario" && <PortalDiary token={token} />}
+      {tab === "diario" && showDiary && <PortalDiary token={token} />}
     </div>
   );
 }
