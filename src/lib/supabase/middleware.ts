@@ -1,5 +1,9 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+
+// Tipo de cada cookie que Supabase pide setear. Se declara explícito para no
+// depender del inferido contextual (Vercel/build estricto → "implicitly any").
+type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // Refresca la sesión de Supabase en cada request y protege el área privada.
 // Rutas públicas: /login, /signup, el portal /p/<token> y el agendamiento
@@ -17,7 +21,7 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: CookieToSet[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
