@@ -1,3 +1,5 @@
+import { ThemeToggle } from "./ThemeToggle";
+
 // Encabezado superior del área privada. El título lo define cada página vía props.
 export function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -6,6 +8,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
         <h1 className="font-display font-extrabold text-lg md:text-xl leading-tight truncate">{title}</h1>
         {subtitle && <p className="text-[13px] text-muted">{subtitle}</p>}
       </div>
+      <ThemeToggle />
     </header>
   );
 }

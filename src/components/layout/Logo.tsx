@@ -1,19 +1,37 @@
-// Logotipo VitaeGest (texto de marca). El isologo definitivo se agrega como
-// <img> cuando esté el asset en /public; por ahora un placeholder tipográfico.
-export function Logo({ size = 34, showTagline = true }: { size?: number; showTagline?: boolean }) {
+/* eslint-disable @next/next/no-img-element */
+// Logotipo VitaeGest.
+//   - variant "mark" (default): isologo real (/public/isologo.png) + wordmark.
+//   - variant "full": logo completo como imagen (/public/logo-full.png).
+// Los PNG son transparentes, así que se ven bien en claro y oscuro.
+export function Logo({
+  size = 34,
+  showTagline = true,
+  variant = "mark",
+}: {
+  size?: number;
+  showTagline?: boolean;
+  variant?: "mark" | "full";
+}) {
+  if (variant === "full") {
+    return (
+      <img
+        src="/logo-full.png"
+        alt="VitaeGest · Software Kinésico Integral"
+        style={{ height: size, width: "auto", display: "block" }}
+      />
+    );
+  }
+
   return (
     <div className="flex items-center gap-2.5 min-w-0">
-      <div
-        className="rounded-xl2 shrink-0 flex items-center justify-center font-extrabold text-white"
-        style={{
-          width: size,
-          height: size,
-          fontSize: size * 0.44,
-          background: "linear-gradient(135deg, var(--primary), var(--teal))",
-        }}
-      >
-        V
-      </div>
+      <img
+        src="/isologo.png"
+        alt="VitaeGest"
+        width={size}
+        height={size}
+        className="shrink-0"
+        style={{ width: size, height: size, objectFit: "contain", display: "block" }}
+      />
       <div className="leading-none min-w-0">
         <div className="font-extrabold text-[17px] tracking-tight truncate">
           <span style={{ color: "var(--ink)" }}>Vitae</span>
