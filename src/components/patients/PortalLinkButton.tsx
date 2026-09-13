@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ensurePortalToken } from "@/server/actions/portalLinks";
+import { ensurePortalToken, revokePortalToken, rotatePortalToken } from "@/server/actions/portalLinks";
 import { waLink } from "@/lib/utils/agenda";
 
 type Scope = "both" | "exercises";
@@ -60,6 +60,28 @@ export function PortalLinkButton({
       const res = await ensurePortalToken(patientId, s);
       if (res.error) setError(res.error);
     });
+
+  const revoke = () => {
+    if (!confirm("¿Revocar el enlace? El paciente ya no podrá acceder con el link actual.")) return;
+    start(async () => {
+      setError(null);
+      const res = await revokePortalToken(patientId);
+      if (res.error) { setError(res.error); return; }
+      setToken(null);
+      setOpen(false);
+    });
+  };
+
+  const rotate = () => {
+    if (!confirm("¿Generar un enlace nuevo? El anterior dejará de funcionar.")) return;
+    start(async () => {
+      setError(null);
+      const res = await rotatePortalToken(patientId, scope);
+      if (res.error) { setError(res.error); return; }
+      setToken(res.token ?? null);
+      setCopied(false);
+    });
+  };
 
   const copy = async () => {
     try {
@@ -153,8 +175,19 @@ export function PortalLinkButton({
           </div>
           <p className="text-[12px] font-semibold mb-1.5">Tipo de seguimiento</p>
           <ScopePicker />
+
+          {/* Seguridad: rotar o revocar el enlace */}
+          <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-line">
+            <button onClick={rotate} disabled={pending} className="text-[12px] font-semibold rounded-xl2 px-3 py-2 border border-line trans disabled:opacity-50" style={{ background: "var(--surface-2)", color: "var(--primary-ink)" }}>
+              ↻ Generar nuevo
+            </button>
+            <button onClick={revoke} disabled={pending} className="text-[12px] font-semibold rounded-xl2 px-3 py-2 border trans disabled:opacity-50" style={{ borderColor: "var(--rose)", color: "var(--rose)", background: "var(--surface)" }}>
+              Revocar enlace
+            </button>
+          </div>
+
           {error && <p className="text-[11px] mt-2" style={{ color: "var(--rose)" }}>{error}</p>}
-          <p className="text-[11px] text-muted mt-2 leading-snug">Cualquiera con este enlace puede ver y cargar datos del paciente. Compartilo solo con él/ella.</p>
+          <p className="text-[11px] text-muted mt-2 leading-snug">Cualquiera con este enlace puede ver y cargar datos del paciente. Al <b>revocar</b> o <b>generar nuevo</b>, el enlace anterior deja de funcionar.</p>
         </div>
       )}
     </div>
