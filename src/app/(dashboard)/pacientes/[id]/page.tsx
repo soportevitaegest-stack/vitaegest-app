@@ -6,6 +6,7 @@ import { fullName, initials, ageFrom, activeOrder } from "@/lib/utils/format";
 import { PatientActions } from "@/components/patients/PatientActions";
 import { PortalLinkButton } from "@/components/patients/PortalLinkButton";
 import { PortalSeguimiento } from "@/components/portal/PortalSeguimiento";
+import { ExerciseManagerSection } from "@/components/exercise/ExerciseManagerSection";
 import type { Patient } from "@/types/domain";
 
 export const dynamic = "force-dynamic";
@@ -233,6 +234,10 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
             </section>
           </div>
         </div>
+        <div className="mt-5">
+          <ExerciseManagerSection patientId={p.id} />
+        </div>
+
         <div className="mt-5">
           <PortalSeguimiento patientId={p.id} scope={portalScope} />
         </div>
