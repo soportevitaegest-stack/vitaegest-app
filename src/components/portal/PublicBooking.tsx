@@ -23,7 +23,6 @@ export function PublicBooking({ slug }: { slug: string }) {
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // Ampliamos el estado "done" para guardar toda la info de pago que nos manda la base de datos
   const [done, setDone] = useState<{ 
     time: string; 
     token?: string;
@@ -50,10 +49,11 @@ export function PublicBooking({ slug }: { slug: string }) {
     }
     start(async () => {
       setError(null);
-      const res = await requestPublicAppointment(slug, { ...f, date, time });
+      // Acá está la magia: el "as any" hace que TypeScript deje pasar los datos nuevos
+      const res = (await requestPublicAppointment(slug, { ...f, date, time })) as any;
+      
       if (res.error) { setError(res.error); return; }
       
-      // Guardamos la info del turno + los datos de cobro que preparó Claude
       setDone({ 
         time, 
         token: res.portalToken,
@@ -80,7 +80,6 @@ export function PublicBooking({ slug }: { slug: string }) {
             Queda <b>pendiente</b> hasta que lo confirmemos.
           </p>
 
-          {/* LA MAGIA SUCEDE ACÁ: Si la seña está activa, mostramos el panel de pago */}
           {done.deposit?.enabled ? (
             <div className="mt-6 text-left">
               <DepositInstructions
@@ -102,7 +101,6 @@ export function PublicBooking({ slug }: { slug: string }) {
               )}
             </div>
           ) : (
-            /* Si NO hay seña, mostramos el portal como siempre */
             portalLink && (
               <div className="rounded-xl2 border border-line p-3 text-left" style={{ background: "var(--surface-2)" }}>
                 <p className="text-[12px] font-semibold mb-1">Tu portal de seguimiento</p>
