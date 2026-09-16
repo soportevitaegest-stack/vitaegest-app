@@ -164,6 +164,7 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
                 <h3 className="text-[12px] font-semibold text-muted uppercase tracking-wide">Historia clínica · evoluciones</h3>
                 
                 <div className="flex items-center gap-2 flex-wrap">
+                  <PrintButton />
                   <Link
                     href={`/pacientes/${p.id}/evaluaciones`}
                     className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 trans border border-line"
@@ -244,5 +245,20 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
         </div>
       </main>
     </>
+  );
+}
+
+// Subcomponente seguro para el botón de impresión que corre en el navegador
+function PrintButton() {
+  return (
+    <button
+      type="button"
+      onClick={() => window.print()}
+      className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 trans border border-line hover:border-primary"
+      style={{ background: "var(--surface-2)", color: "var(--ink)" }}
+      title="Imprimir o guardar como PDF"
+    >
+      🖨️ Exportar PDF
+    </button>
   );
 }
