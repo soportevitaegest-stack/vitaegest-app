@@ -61,6 +61,38 @@ export function BillingBoard({
 
   const patientName = (p: PaymentRow) => (p.patients ? `${p.patients.first_name} ${p.patients.last_name}` : "Paciente");
 
+  // NUEVO: Motor de exportación a CSV (Excel)
+  const exportCSV = () => {
+    const headers = ["Fecha", "Paciente", "Cobertura", "Honorarios", "Coseguro", "Estampilla", "Total", "Método", "Estado"];
+    
+    const csvRows = rows.map((p) => {
+      const date = new Date(p.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+      const patient = patientName(p);
+      const coverage = p.coverage_type === "obra_social" ? "Obra social" : "Particular";
+      const hon = p.amount || 0;
+      const copay = p.copay_amount || 0;
+      const stamp = p.stamp_amount || 0;
+      const total = p.total_amount || 0;
+      const method = p.status === "paid" ? methodLabel(p.method) : "—";
+      const status = STATUS_META[p.status].label;
+
+      return [date, patient, coverage, hon, copay, stamp, total, method, status]
+        .map((val) => `"${String(val).replace(/"/g, '""')}"`) // Evita que las comas rompan las columnas
+        .join(",");
+    });
+
+    const csvContent = [headers.join(","), ...csvRows].join("\n");
+    // El \uFEFF le avisa a Excel que use UTF-8 (para que se vean bien los acentos)
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `VitaeGest_Facturacion_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {/* KPIs */}
@@ -84,7 +116,12 @@ export function BillingBoard({
             );
           })}
         </div>
+        
+        {/* BOTONERA: Se agregó el botón Exportar */}
         <div className="flex items-center gap-2">
+          <button onClick={exportCSV} className="text-[12.5px] font-semibold rounded-xl2 px-3 py-2 border border-line trans hover:bg-[var(--surface-2)]" style={{ color: "var(--ink)" }}>
+            ⬇ Exportar CSV
+          </button>
           <button onClick={() => setOpen(open === "bono" ? null : "bono")} className="text-[12.5px] font-semibold rounded-xl2 px-3 py-2 border border-line trans" style={{ background: "var(--surface-2)", color: "var(--ink)" }}>
             Cargar bono
           </button>
