@@ -1,5 +1,7 @@
 import { getPublicSlots } from "@/server/actions/portalPublic";
 import { PublicBooking } from "@/components/portal/PublicBooking";
+import { createClient } from "@/lib/supabase/server";
+import { formatARS } from "@/lib/deposits";
 
 export const dynamic = "force-dynamic";
 
@@ -23,17 +25,34 @@ export default async function AgendarPage({ params }: { params: { slug: string }
     );
   }
 
+  // Instanciamos la base de datos y buscamos si este profesional cobra seña
+  const supabase = await createClient();
+  const { data: info } = await supabase.rpc("public_booking_info", { p_slug: params.slug });
+
   return (
     <main className="min-h-screen" style={{ background: "var(--canvas)" }}>
       <header className="px-5 pt-6 pb-5" style={{ background: "linear-gradient(135deg,var(--primary),var(--teal))" }}>
         <div className="max-w-lg mx-auto text-white">
-          <p className="text-[12.5px] font-semibold opacity-90">VitaeGest</p>
+          <p className="text-[12.5px] font-semibold opacity-90">{info?.professional?.clinic_name || "VitaeGest"}</p>
           <h1 className="font-display font-extrabold text-2xl mt-0.5">Agendá tu turno</h1>
           <p className="text-[13px] opacity-90 mt-1">Completá tus datos y elegí un horario. Tu turno queda pendiente de confirmación.</p>
         </div>
       </header>
 
       <div className="max-w-lg mx-auto px-4 pb-16 -mt-3">
+        
+        {/* NUEVO: Cartel de aviso de seña antes de que empiece a llenar los datos */}
+        {info?.deposit?.enabled && (
+          <div className="mb-4 rounded-xl bg-teal-50 border border-teal-200 p-4 shadow-sm relative z-10">
+            <p className="text-sm text-teal-900 font-medium">
+              💳 Este consultorio requiere una seña de <strong>{formatARS(info.deposit.amount)}</strong> para confirmar el turno.
+            </p>
+            <p className="text-xs text-teal-700 mt-1">
+              Al finalizar la reserva te mostraremos los datos para transferir.
+            </p>
+          </div>
+        )}
+
         <PublicBooking slug={params.slug} />
       </div>
     </main>
