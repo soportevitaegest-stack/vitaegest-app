@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { getPublicSlots, requestPublicAppointment } from "@/server/actions/portalPublic";
+import { DepositInstructions } from "@/components/booking/DepositInstructions";
 import type { Slot } from "@/types/portal";
 
 const card = "bg-surface border border-line rounded-xl3 shadow-soft p-5";
@@ -21,7 +22,15 @@ export function PublicBooking({ slug }: { slug: string }) {
   const [date, setDate] = useState(tomorrowKey());
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ time: string; token?: string } | null>(null);
+  
+  // Ampliamos el estado "done" para guardar toda la info de pago que nos manda la base de datos
+  const [done, setDone] = useState<{ 
+    time: string; 
+    token?: string;
+    deposit?: any;
+    payment?: any;
+    appointmentId?: string;
+  } | null>(null);
 
   const set = (k: keyof typeof f, v: string) => setF((s) => ({ ...s, [k]: v }));
 
@@ -43,7 +52,15 @@ export function PublicBooking({ slug }: { slug: string }) {
       setError(null);
       const res = await requestPublicAppointment(slug, { ...f, date, time });
       if (res.error) { setError(res.error); return; }
-      setDone({ time, token: res.portalToken });
+      
+      // Guardamos la info del turno + los datos de cobro que preparó Claude
+      setDone({ 
+        time, 
+        token: res.portalToken,
+        deposit: res.deposit,
+        payment: res.payment,
+        appointmentId: res.appointmentId || res.appointment_id
+      });
     });
   };
 
@@ -52,23 +69,50 @@ export function PublicBooking({ slug }: { slug: string }) {
 
   if (done) {
     const portalLink = done.token ? `${origin}/p/${done.token}` : "";
+    
     return (
       <div className={card}>
         <div className="text-center py-2">
           <div className="text-4xl mb-2">🎉</div>
           <h2 className="font-display font-bold text-lg mb-1">¡Turno solicitado!</h2>
           <p className="text-[13px] text-muted leading-snug mb-4">
-            Pediste el turno de las <b>{done.time} hs</b>. Queda <b>pendiente</b> hasta que el profesional lo confirme.
+            Pediste el turno del <b>{date}</b> a las <b>{done.time} hs</b>.<br/>
+            Queda <b>pendiente</b> hasta que lo confirmemos.
           </p>
-          {portalLink && (
-            <div className="rounded-xl2 border border-line p-3 text-left" style={{ background: "var(--surface-2)" }}>
-              <p className="text-[12px] font-semibold mb-1">Tu portal de seguimiento</p>
-              <p className="text-[12px] text-muted break-all mb-2">{portalLink}</p>
-              <a href={portalLink} className="inline-block text-[12.5px] font-semibold rounded-xl2 px-3 py-2 text-white" style={{ background: "var(--teal)" }}>
-                Abrir mi portal
-              </a>
-              <p className="text-[11px] text-muted mt-2">Guardá este enlace: desde ahí vas a ver el estado de tu turno.</p>
+
+          {/* LA MAGIA SUCEDE ACÁ: Si la seña está activa, mostramos el panel de pago */}
+          {done.deposit?.enabled ? (
+            <div className="mt-6 text-left">
+              <DepositInstructions
+                deposit={done.deposit}
+                payment={done.payment}
+                appointmentId={done.appointmentId}
+                professionalName=""
+                turno={`${date} a las ${done.time} hs`}
+                whatsapp=""
+              />
+              
+              {portalLink && (
+                <div className="mt-6 text-center border-t border-line pt-4">
+                  <p className="text-[12px] text-muted mb-2">Podés hacer el seguimiento desde tu portal:</p>
+                  <a href={portalLink} className="inline-block text-[12.5px] font-semibold rounded-xl2 px-3 py-2 text-white" style={{ background: "var(--teal)" }}>
+                    Abrir mi portal
+                  </a>
+                </div>
+              )}
             </div>
+          ) : (
+            /* Si NO hay seña, mostramos el portal como siempre */
+            portalLink && (
+              <div className="rounded-xl2 border border-line p-3 text-left" style={{ background: "var(--surface-2)" }}>
+                <p className="text-[12px] font-semibold mb-1">Tu portal de seguimiento</p>
+                <p className="text-[12px] text-muted break-all mb-2">{portalLink}</p>
+                <a href={portalLink} className="inline-block text-[12.5px] font-semibold rounded-xl2 px-3 py-2 text-white" style={{ background: "var(--teal)" }}>
+                  Abrir mi portal
+                </a>
+                <p className="text-[11px] text-muted mt-2">Guardá este enlace: desde ahí vas a ver el estado de tu turno.</p>
+              </div>
+            )
           )}
         </div>
       </div>
