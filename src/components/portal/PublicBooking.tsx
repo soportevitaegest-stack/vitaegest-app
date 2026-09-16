@@ -49,7 +49,6 @@ export function PublicBooking({ slug }: { slug: string }) {
     }
     start(async () => {
       setError(null);
-      // Acá está la magia: el "as any" hace que TypeScript deje pasar los datos nuevos
       const res = (await requestPublicAppointment(slug, { ...f, date, time })) as any;
       
       if (res.error) { setError(res.error); return; }
@@ -85,7 +84,7 @@ export function PublicBooking({ slug }: { slug: string }) {
               <DepositInstructions
                 deposit={done.deposit}
                 payment={done.payment}
-                appointmentId={done.appointmentId}
+                appointmentId={done.appointmentId || ""}
                 professionalName=""
                 turno={`${date} a las ${done.time} hs`}
                 whatsapp=""
