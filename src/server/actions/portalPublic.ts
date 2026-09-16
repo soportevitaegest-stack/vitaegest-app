@@ -39,7 +39,7 @@ export type PublicBookingForm = {
 export async function requestPublicAppointment(
   slug: string,
   f: PublicBookingForm
-): Promise<{ ok?: boolean; error?: string; portalToken?: string }> {
+): Promise<{ ok?: boolean; error?: string; portalToken?: string; deposit?: any; payment?: any; appointmentId?: string }> {
   if (!f.first_name.trim() || !f.last_name.trim()) return { error: "Ingresá tu nombre y apellido." };
   const start = localToUtcISO(f.date, f.time);
   if (!start) return { error: "Fecha u horario inválidos." };
@@ -55,7 +55,17 @@ export async function requestPublicAppointment(
     p_area: "general",
     p_reason: f.reason || null,
   });
+  
   if (error) return { error: humanize(error.message) };
-  const portalToken = (data as { portal_token?: string } | null)?.portal_token;
-  return { ok: true, portalToken };
+  
+  // Acá está el cambio: le decimos que extraiga absolutamente todo lo que manda la base de datos
+  const d = data as any;
+  
+  return { 
+    ok: true, 
+    portalToken: d?.portal_token,
+    deposit: d?.deposit,
+    payment: d?.payment,
+    appointmentId: d?.appointment_id
+  };
 }
