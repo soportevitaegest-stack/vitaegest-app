@@ -252,7 +252,7 @@ export async function buildPatientPdf(rec: Record_): Promise<Blob> {
         str(b.derivante),
         str(b.obra_social),
         `${b.usadas ?? 0} / ${b.total ?? 0}`,
-        str(b.estado),
+        ESTADO_BONO[String(b.estado)] ?? str(b.estado),
       ]),
       margin: { left: M, right: M, bottom: 54 },
       styles: { font: "helvetica", fontSize: 8.5, cellPadding: 4, textColor: [...INK] },
@@ -351,8 +351,31 @@ function seccion(doc: Jsp, y: number, titulo: string): number {
 
 const str = (v: unknown) => (v === null || v === undefined || v === "" ? "—" : String(v));
 
-const fecha = (v: unknown) =>
-  v ? new Date(String(v)).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" }) : "—";
+const ESTADO_BONO: Record<string, string> = {
+  active: "Activo",
+  completed: "Completado",
+  expired: "Vencido",
+  cancelled: "Cancelado",
+};
+
+/**
+ * Las columnas DATE de Postgres llegan como "1988-04-12", sin hora. Pasarlas
+ * por new Date() las interpreta como medianoche UTC y, al mostrarlas en hora
+ * argentina (-03:00), retroceden un día: el 12 aparece como 11. Por eso las
+ * fechas de solo-día se arman a mano y solo los timestamps usan la zona.
+ */
+const fecha = (v: unknown) => {
+  if (!v) return "—";
+  const s = String(v);
+  const soloFecha = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (soloFecha) {
+    const [, a, m, d] = soloFecha;
+    return `${Number(d)}/${Number(m)}/${a}`;
+  }
+  return new Date(s).toLocaleDateString("es-AR", {
+    timeZone: "America/Argentina/Buenos_Aires",
+  });
+};
 
 const fechaHora = (v: unknown) =>
   v
