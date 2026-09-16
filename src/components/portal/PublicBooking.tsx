@@ -79,7 +79,8 @@ export function PublicBooking({ slug }: { slug: string }) {
             Queda <b>pendiente</b> hasta que lo confirmemos.
           </p>
 
-          {done.deposit?.enabled ? (
+          {/* ACÁ ESTABA EL ERROR: Cambié "enabled" por "required" */}
+          {done.deposit?.required ? (
             <div className="mt-6 text-left">
               <DepositInstructions
                 deposit={done.deposit}
