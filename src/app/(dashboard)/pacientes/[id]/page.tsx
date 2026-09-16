@@ -7,7 +7,6 @@ import { PatientActions } from "@/components/patients/PatientActions";
 import { PortalLinkButton } from "@/components/patients/PortalLinkButton";
 import { PortalSeguimiento } from "@/components/portal/PortalSeguimiento";
 import { ExerciseManagerSection } from "@/components/exercise/ExerciseManagerSection";
-import { PrintEvolutionButton } from "@/components/patients/PrintEvolutionButton";
 import type { Patient } from "@/types/domain";
 
 export const dynamic = "force-dynamic";
@@ -165,7 +164,6 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
                 <h3 className="text-[12px] font-semibold text-muted uppercase tracking-wide">Historia clínica · evoluciones</h3>
                 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <PrintEvolutionButton />
                   <Link
                     href={`/pacientes/${p.id}/evaluaciones`}
                     className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 trans border border-line"
