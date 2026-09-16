@@ -248,12 +248,14 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
   );
 }
 
-// Subcomponente seguro para el botón de impresión que corre en el navegador
+// Componente interactivo aislado para que corra seguro en el navegador
 function PrintButton() {
   return (
     <button
       type="button"
-      onClick={() => window.print()}
+      onClick={() => {
+        if (typeof window !== "undefined") window.print();
+      }}
       className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 trans border border-line hover:border-primary"
       style={{ background: "var(--surface-2)", color: "var(--ink)" }}
       title="Imprimir o guardar como PDF"
