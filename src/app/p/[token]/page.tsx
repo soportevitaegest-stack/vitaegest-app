@@ -2,7 +2,10 @@ import { createPortalClient } from "@/lib/supabase/portal";
 import { PortalTabs } from "./PortalTabs";
 import type { PortalContext } from "@/types/portal";
 
+// Estas tres líneas son la bomba atómica anti-caché de Next.js
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 // Portal público del paciente. NEXT 14: params es un objeto síncrono.
 export default async function PortalPage({ params }: { params: { token: string } }) {
