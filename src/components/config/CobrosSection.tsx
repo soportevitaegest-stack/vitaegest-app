@@ -25,6 +25,11 @@ export type CobrosProps = {
   };
 };
 
+const card = "bg-surface border border-line rounded-xl3 shadow-soft p-5 sm:p-6 mb-6";
+const input = "w-full bg-surface-2 border border-line rounded-xl2 px-3 py-2.5 text-sm outline-none focus:border-primary trans";
+const lbl = "block text-[12.5px] font-semibold mb-1.5";
+const hint = "mb-2 mt-0.5 text-[12px] text-muted";
+
 export function CobrosSection({ deposit, payment }: CobrosProps) {
   const [dep, setDep] = useState(deposit);
   const [pay, setPay] = useState(payment);
@@ -54,13 +59,13 @@ export function CobrosSection({ deposit, payment }: CobrosProps) {
   }
 
   return (
-    <section className="space-y-6">
+    <section>
       {/* ── Seña ─────────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className={card}>
         <div className="flex items-start justify-between gap-6">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Seña de reserva</h3>
-            <p className="mt-1 max-w-lg text-sm text-gray-500">
+            <h3 className="font-display font-bold text-[15px]">Seña de reserva</h3>
+            <p className="mt-1 text-[13px] text-muted leading-snug">
               Cuando alguien pide un turno desde tu link público, el sistema le
               muestra el monto y tus datos de pago. El horario le queda retenido
               hasta que venza el plazo.
@@ -74,29 +79,29 @@ export function CobrosSection({ deposit, payment }: CobrosProps) {
         </div>
 
         {dep.enabled && (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2">
-            <Field label="Monto de la seña" hint="Se congela en cada reserva ya tomada.">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 pt-4 border-t border-line">
+            <Field label="Monto de la seña" hintText="Se congela en cada reserva ya tomada.">
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">$</span>
                 <input
                   type="number"
                   min={0}
                   step={500}
                   value={dep.amount}
                   onChange={(e) => setDep({ ...dep, amount: Number(e.target.value) })}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-8 pr-4 text-gray-900 outline-none focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500"
+                  className={`${input} pl-8`}
                 />
               </div>
             </Field>
 
             <Field
               label="Plazo para pagar"
-              hint="Pasado ese tiempo el turno se cancela solo y el horario se libera."
+              hintText="Pasado ese tiempo el turno se cancela."
             >
               <select
                 value={dep.holdHours}
                 onChange={(e) => setDep({ ...dep, holdHours: Number(e.target.value) })}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500"
+                className={input}
               >
                 {[2, 6, 12, 24, 48, 72].map((h) => (
                   <option key={h} value={h}>
@@ -109,51 +114,51 @@ export function CobrosSection({ deposit, payment }: CobrosProps) {
             <div className="sm:col-span-2">
               <Field
                 label="Qué ve la paciente"
-                hint="Una línea corta. Ej: “La seña se descuenta del valor de la sesión.”"
+                hintText="Una línea corta. Ej: “La seña se descuenta del valor de la sesión.”"
               >
                 <input
                   value={dep.note}
                   onChange={(e) => setDep({ ...dep, note: e.target.value })}
                   maxLength={160}
                   placeholder="La seña se descuenta del valor de la sesión."
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none placeholder:text-gray-400 focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500"
+                  className={input}
                 />
               </Field>
             </div>
 
             {dep.amount > 0 && (
-              <p className="rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-800 sm:col-span-2">
+              <div className="sm:col-span-2 rounded-xl2 px-4 py-3 text-[13px] font-medium" style={{ background: "var(--teal)", color: "white" }}>
                 Al reservar va a leer: <strong>seña de {formatARS(dep.amount)}</strong>, a pagar
                 dentro de {dep.holdHours} horas.
-              </p>
+              </div>
             )}
           </div>
         )}
       </div>
 
       {/* ── Por dónde cobra ──────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-gray-900">Tus datos de cobro</h3>
-        <p className="mt-1 text-sm text-gray-500">
+      <div className={card}>
+        <h3 className="font-display font-bold text-[15px]">Tus datos de cobro</h3>
+        <p className="mt-1 text-[13px] text-muted leading-snug">
           La plata va directo a tu cuenta. VitaeGest no la toca ni cobra comisión.
         </p>
 
         {sinCanal && (
-          <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
-            Activaste la seña pero todavía no cargaste ningún dato de pago. Poné
-            al menos el alias, o la paciente no va a saber dónde transferir.
-          </p>
+          <div className="mt-4 rounded-xl2 px-3 py-2.5 text-[13px] font-medium" style={{ background: "var(--rose-soft)", color: "var(--rose)" }}>
+            Activaste la seña pero no cargaste datos de pago. Poné
+            al menos el alias.
+          </div>
         )}
 
-        <div className="mt-5 space-y-5">
-          <div className="rounded-xl border border-gray-200 p-4">
+        <div className="mt-5 space-y-4">
+          <div className="rounded-xl2 border border-line p-4 bg-surface-2">
             <Switch
               checked={pay.transferEnabled}
               onChange={(v) => setPay({ ...pay, transferEnabled: v })}
               label="Transferencia bancaria"
             />
             {pay.transferEnabled && (
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 pt-4 border-t border-line">
                 <Field label="Alias">
                   <Input
                     value={pay.bankAlias}
@@ -182,7 +187,7 @@ export function CobrosSection({ deposit, payment }: CobrosProps) {
                     placeholder="Banco Nación / Mercado Pago"
                   />
                 </Field>
-                <Field label="CUIT / CUIL" hint="Opcional. Algunos bancos lo piden.">
+                <Field label="CUIT / CUIL" hintText="Opcional.">
                   <Input
                     value={pay.bankDoc}
                     onChange={(v) => setPay({ ...pay, bankDoc: v })}
@@ -193,18 +198,17 @@ export function CobrosSection({ deposit, payment }: CobrosProps) {
             )}
           </div>
 
-          <div className="rounded-xl border border-gray-200 p-4">
+          <div className="rounded-xl2 border border-line p-4 bg-surface-2">
             <Switch
               checked={pay.mpLinkEnabled}
               onChange={(v) => setPay({ ...pay, mpLinkEnabled: v })}
               label="Link de cobro de Mercado Pago"
             />
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-[13px] text-muted">
               En la app de Mercado Pago: <strong>Cobrar → Link de pago</strong>.
-              Creá uno por el monto de la seña y pegá el link acá.
             </p>
             {pay.mpLinkEnabled && (
-              <div className="mt-4">
+              <div className="mt-3">
                 <Input
                   value={pay.mpLink}
                   onChange={(v) => setPay({ ...pay, mpLink: v })}
@@ -216,14 +220,14 @@ export function CobrosSection({ deposit, payment }: CobrosProps) {
 
           <Field
             label="Instrucciones extra"
-            hint="Se muestran debajo de los datos de pago. Ej: “Mandame el comprobante por WhatsApp.”"
+            hintText="Se muestran debajo de los datos de pago."
           >
             <textarea
               value={pay.instructions}
               onChange={(e) => setPay({ ...pay, instructions: e.target.value })}
               rows={2}
               maxLength={300}
-              className="w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500"
+              className={`${input} resize-y`}
             />
           </Field>
         </div>
@@ -232,12 +236,12 @@ export function CobrosSection({ deposit, payment }: CobrosProps) {
       </div>
 
       <div className="flex items-center gap-4">
-        <button onClick={guardar} disabled={pending} className="btn-primary">
+        <button onClick={guardar} disabled={pending} className="rounded-xl2 px-4 py-2.5 text-sm font-semibold text-white trans disabled:opacity-50" style={{ background: "var(--primary)" }}>
           {pending ? "Guardando…" : "Guardar cambios"}
         </button>
         {msg && (
           <span
-            className={`text-sm ${msg.tone === "ok" ? "text-teal-600" : "text-red-600"}`}
+            className={`text-sm ${msg.tone === "ok" ? "text-[#10b981]" : "text-[#f43f5e]"}`}
             role="status"
           >
             {msg.text}
@@ -257,26 +261,24 @@ function MercadoPagoAvanzado({ enabled }: { enabled: boolean }) {
 
   return (
     <details
-      className="mt-5 rounded-xl border border-gray-200 p-4"
+      className="mt-4 rounded-xl2 border border-line p-4 bg-surface-2"
       open={abierto}
       onToggle={(e) => setAbierto((e.currentTarget as HTMLDetailsElement).open)}
     >
-      <summary className="cursor-pointer text-sm font-semibold text-gray-900">
+      <summary className="cursor-pointer text-sm font-semibold outline-none">
         Cobro automático con Mercado Pago{" "}
         {enabled ? (
-          <span className="ml-2 rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-800">
+          <span className="ml-2 rounded-full px-2 py-0.5 text-[11px]" style={{ background: "var(--teal)", color: "white" }}>
             conectado
           </span>
         ) : (
-          <span className="ml-2 text-xs font-normal text-gray-400">(avanzado)</span>
+          <span className="ml-2 text-[11px] text-muted font-normal">(avanzado)</span>
         )}
       </summary>
 
-      <p className="mt-3 text-sm text-gray-500">
+      <p className="mt-3 text-[13px] text-muted">
         Con esto la paciente paga sin salir de la página y el turno se confirma
-        solo. Necesitás tu Access Token de producción:{" "}
-        <em>mercadopago.com.ar/developers → Tus integraciones → Crear aplicación
-        → Credenciales de producción</em>. Empieza con <code>APP_USR-</code>.
+        solo. Necesitás tu Access Token de producción.
       </p>
 
       {enabled ? (
@@ -288,7 +290,7 @@ function MercadoPagoAvanzado({ enabled }: { enabled: boolean }) {
             })
           }
           disabled={pending}
-          className="btn-ghost mt-4"
+          className="mt-4 rounded-xl2 px-3 py-2 text-sm border border-line text-muted hover:text-[var(--primary)] trans"
         >
           Desconectar Mercado Pago
         </button>
@@ -305,31 +307,31 @@ function MercadoPagoAvanzado({ enabled }: { enabled: boolean }) {
               })
             }
             disabled={pending || !token}
-            className="btn-primary"
+            className="rounded-xl2 px-4 py-2.5 text-sm font-semibold text-white trans disabled:opacity-50" style={{ background: "var(--primary)" }}
           >
             {pending ? "Verificando…" : "Conectar"}
           </button>
         </div>
       )}
-      {msg && <p className="mt-3 text-sm text-gray-500">{msg}</p>}
+      {msg && <p className="mt-3 text-[13px] text-muted">{msg}</p>}
     </details>
   );
 }
 
 function Field({
   label,
-  hint,
+  hintText,
   children,
 }: {
   label: string;
-  hint?: string;
+  hintText?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="text-sm font-semibold text-gray-900">{label}</label>
-      {hint && <p className="mb-2 mt-0.5 text-xs text-gray-500">{hint}</p>}
-      <div className={hint ? "" : "mt-2"}>{children}</div>
+      <label className={lbl}>{label}</label>
+      {hintText && <p className={hint}>{hintText}</p>}
+      <div>{children}</div>
     </div>
   );
 }
@@ -351,7 +353,7 @@ function Input({
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none placeholder:text-gray-400 focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500"
+      className={input}
     />
   );
 }
@@ -367,7 +369,7 @@ function Switch({
 }) {
   return (
     <label className="inline-flex cursor-pointer items-center gap-3">
-      <span className="text-sm font-semibold text-gray-900">{label}</span>
+      <span className={lbl} style={{ marginBottom: 0 }}>{label}</span>
       <button
         type="button"
         role="switch"
@@ -375,12 +377,13 @@ function Switch({
         aria-label={label}
         onClick={() => onChange(!checked)}
         className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-teal-500" : "bg-gray-200"
+          checked ? "bg-emerald-500" : "bg-neutral-600"
         }`}
+        style={checked ? { background: "var(--teal)" } : { background: "var(--surface-2)", border: "1px solid var(--line)" }}
       >
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-[22px]" : "translate-x-0.5"
+          className={`absolute top-[1px] h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-[20px]" : "translate-x-[2px]"
           }`}
         />
       </button>
