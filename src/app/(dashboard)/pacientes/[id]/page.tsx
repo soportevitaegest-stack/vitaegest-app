@@ -30,7 +30,6 @@ type EvolutionRow = {
   structured_data: { eva?: number } | null;
 };
 
-// NEXT 14: params es un objeto síncrono (en Next 15 sería una Promise).
 export default async function FichaPacientePage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
 
@@ -53,7 +52,7 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
       )
       .eq("patient_id", params.id)
       .order("evolution_date", { ascending: false })
-      .limit(20),
+      .limit(50), // Traemos hasta 50 evoluciones para el historial completo
     supabase
       .from("appointments")
       .select("id, start_at, status, area")
@@ -161,9 +160,12 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
           {/* Columna derecha: historia clínica (evoluciones) */}
           <div className="flex flex-col gap-5">
             <section className={card}>
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h3 className="text-[12px] font-semibold text-muted uppercase tracking-wide">Historia clínica · evoluciones</h3>
-                <div className="flex items-center gap-2">
+                
+                {/* BOTONERA SUPERIOR: Ficha, Exportar PDF y Nueva evolución */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <ExportButton patientName={name} />
                   <Link
                     href={`/pacientes/${p.id}/evaluaciones`}
                     className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 trans border border-line"
@@ -234,6 +236,7 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
             </section>
           </div>
         </div>
+
         <div className="mt-5">
           <ExerciseManagerSection patientId={p.id} />
         </div>
@@ -243,5 +246,20 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
         </div>
       </main>
     </>
+  );
+}
+
+// Subcomponente de botón interactivo para imprimir / exportar PDF
+function ExportButton({ patientName }: { patientName: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => window.print()}
+      className="inline-flex items-center gap-1 text-[12.5px] font-semibold rounded-xl2 px-3 py-1.5 trans border border-line hover:bg-[var(--surface-2)]"
+      style={{ color: "var(--ink)", background: "var(--surface)" }}
+      title={`Exportar historia clínica de ${patientName}`}
+    >
+      🖨️ Exportar PDF
+    </button>
   );
 }
