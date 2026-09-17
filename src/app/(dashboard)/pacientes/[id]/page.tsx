@@ -96,19 +96,34 @@ export default async function FichaPacientePage({ params }: { params: { id: stri
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.4fr] gap-5 items-start">
           {/* Columna izquierda: datos base + bono + antecedentes */}
           <div className="flex flex-col gap-5">
+            
             <section className={card}>
-              <div className="flex items-center gap-3.5">
-                <div
-                  className="w-14 h-14 rounded-2xl shrink-0 flex items-center justify-center text-lg font-display font-extrabold text-white"
-                  style={{ background: "linear-gradient(135deg,var(--primary),var(--teal))" }}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div
+                    className="w-14 h-14 rounded-2xl shrink-0 flex items-center justify-center text-lg font-display font-extrabold text-white"
+                    style={{ background: "linear-gradient(135deg,var(--primary),var(--teal))" }}
+                  >
+                    {initials(name)}
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="font-display font-extrabold text-[17px] truncate">{name}</h2>
+                    <p className="text-[13px] text-muted">{ageFrom(p.birth_date)} años · {p.phone ?? "sin teléfono"}</p>
+                  </div>
+                </div>
+
+                {/* BOTÓN EDITAR */}
+                <Link 
+                  href={`/pacientes/${p.id}/editar`} 
+                  className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink transition-colors hover:bg-canvas dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
                 >
-                  {initials(name)}
-                </div>
-                <div className="min-w-0">
-                  <h2 className="font-display font-extrabold text-[17px] truncate">{name}</h2>
-                  <p className="text-[13px] text-muted">{ageFrom(p.birth_date)} años · {p.phone ?? "sin teléfono"}</p>
-                </div>
+                  <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 text-ink-soft dark:text-zinc-400" aria-hidden="true">
+                    <path d="M13.5 3.5 16.5 6.5M3.5 16.5l.7-3 9-9 3 3-9 9-3.7.7Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                  </svg>
+                  Editar
+                </Link>
               </div>
+              
               {p.notes && <p className="text-[13px] text-muted mt-3.5 leading-snug"><span className="font-semibold text-ink">Motivo: </span>{p.notes}</p>}
             </section>
 
