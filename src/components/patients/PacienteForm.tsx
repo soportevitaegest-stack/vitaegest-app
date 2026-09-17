@@ -4,26 +4,12 @@ import Link from "next/link";
 import { useFormState, useFormStatus } from "react-dom";
 import { actualizarPaciente, type EstadoForm } from "@/server/actions/patients-edit";
 
-/**
- * Formulario de edición de paciente.
- *
- * Usa <form action={...}> con useFormState, no onSubmit + fetch. Tres razones:
- *   · El Server Action hace redirect() al guardar, y eso solo funciona bien
- *     desde un form action (desde startTransition en React 18 el redirect se
- *     pierde y el botón queda colgado).
- *   · Los valores viajan en el FormData: no hace falta un useState por campo.
- *   · Si el JavaScript todavía no cargó, el form igual se envía.
- *
- * Los `defaultValue` vienen del servidor, así que la pantalla abre con los datos
- * actuales ya cargados.
- */
-
 export type Paciente = {
   id: string;
   first_name: string;
   last_name: string;
   document_id: string | null;
-  birth_date: string | null; // "YYYY-MM-DD" · no la pases por new Date()
+  birth_date: string | null;
   sex: string | null;
   phone: string | null;
   email: string | null;
@@ -47,15 +33,15 @@ export function PacienteForm({ paciente }: { paciente: Paciente }) {
       {estado.error && (
         <p
           role="alert"
-          className="rounded-xl bg-coral-soft px-4 py-3 text-sm text-coral-dark"
+          className="rounded-xl bg-coral-soft dark:bg-red-950/30 px-4 py-3 text-sm text-coral-dark dark:text-red-400"
         >
           {estado.error}
         </p>
       )}
 
       {/* ── Datos personales ─────────────────────────────────────────────── */}
-      <fieldset className="rounded-2xl border border-ink-line bg-white p-6 shadow-card">
-        <legend className="px-2 text-sm font-bold uppercase tracking-wide text-primary">
+      <fieldset className="rounded-2xl border border-ink-line dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-card">
+        <legend className="px-2 text-sm font-bold uppercase tracking-wide text-primary dark:text-teal-400">
           Datos personales
         </legend>
 
@@ -91,14 +77,14 @@ export function PacienteForm({ paciente }: { paciente: Paciente }) {
           />
 
           <div>
-            <label htmlFor="sex" className="text-sm font-semibold text-ink">
+            <label htmlFor="sex" className="text-sm font-semibold text-ink dark:text-zinc-200">
               Sexo
             </label>
             <select
               id="sex"
               name="sex"
               defaultValue={paciente.sex ?? ""}
-              className="mt-1.5 w-full rounded-xl border border-ink-line bg-canvas px-4 py-3 text-ink outline-none transition-colors focus:border-teal focus:bg-white"
+              className="mt-1.5 w-full rounded-xl border border-ink-line dark:border-zinc-700 bg-canvas dark:bg-zinc-950 px-4 py-3 text-ink dark:text-zinc-100 outline-none transition-colors focus:border-teal dark:focus:border-teal-500 focus:bg-white dark:focus:bg-zinc-900"
             >
               <option value="">Sin especificar</option>
               <option value="F">Femenino</option>
@@ -110,8 +96,8 @@ export function PacienteForm({ paciente }: { paciente: Paciente }) {
       </fieldset>
 
       {/* ── Contacto ─────────────────────────────────────────────────────── */}
-      <fieldset className="rounded-2xl border border-ink-line bg-white p-6 shadow-card">
-        <legend className="px-2 text-sm font-bold uppercase tracking-wide text-primary">
+      <fieldset className="rounded-2xl border border-ink-line dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-card">
+        <legend className="px-2 text-sm font-bold uppercase tracking-wide text-primary dark:text-teal-400">
           Contacto
         </legend>
 
@@ -140,8 +126,8 @@ export function PacienteForm({ paciente }: { paciente: Paciente }) {
       </fieldset>
 
       {/* ── Clínico ──────────────────────────────────────────────────────── */}
-      <fieldset className="rounded-2xl border border-ink-line bg-white p-6 shadow-card">
-        <legend className="px-2 text-sm font-bold uppercase tracking-wide text-primary">
+      <fieldset className="rounded-2xl border border-ink-line dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-card">
+        <legend className="px-2 text-sm font-bold uppercase tracking-wide text-primary dark:text-teal-400">
           Antecedentes
         </legend>
 
@@ -158,7 +144,7 @@ export function PacienteForm({ paciente }: { paciente: Paciente }) {
       </fieldset>
 
       {/* ── Estado ───────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-ink-line bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-ink-line dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-card">
         <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
@@ -167,8 +153,8 @@ export function PacienteForm({ paciente }: { paciente: Paciente }) {
             className="mt-0.5 h-4 w-4 accent-[#1ABC9C]"
           />
           <span>
-            <span className="block text-sm font-semibold text-ink">Paciente activa</span>
-            <span className="mt-0.5 block text-sm text-ink-soft">
+            <span className="block text-sm font-semibold text-ink dark:text-zinc-200">Paciente activa</span>
+            <span className="mt-0.5 block text-sm text-ink-soft dark:text-zinc-400">
               Al desmarcarla deja de aparecer en los listados, pero su historia
               clínica se conserva entera.
             </span>
@@ -178,7 +164,7 @@ export function PacienteForm({ paciente }: { paciente: Paciente }) {
 
       <div className="flex flex-wrap items-center gap-3">
         <BotonGuardar />
-        <Link href={`/pacientes/${paciente.id}`} className="btn-ghost">
+        <Link href={`/pacientes/${paciente.id}`} className="btn-ghost dark:text-zinc-300 dark:hover:bg-zinc-800">
           Cancelar
         </Link>
       </div>
@@ -218,10 +204,10 @@ function Campo({
 }) {
   return (
     <div>
-      <label htmlFor={name} className="text-sm font-semibold text-ink">
-        {label} {required && <span className="text-coral">*</span>}
+      <label htmlFor={name} className="text-sm font-semibold text-ink dark:text-zinc-200">
+        {label} {required && <span className="text-coral dark:text-red-400">*</span>}
       </label>
-      {hint && <p className="mt-0.5 text-xs text-ink-faint">{hint}</p>}
+      {hint && <p className="mt-0.5 text-xs text-ink-faint dark:text-zinc-500">{hint}</p>}
       <input
         id={name}
         name={name}
@@ -232,12 +218,12 @@ function Campo({
         defaultValue={defaultValue ?? ""}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : undefined}
-        className={`mt-1.5 w-full rounded-xl border bg-canvas px-4 py-3 text-ink outline-none transition-colors focus:bg-white ${
-          error ? "border-coral focus:border-coral" : "border-ink-line focus:border-teal"
+        className={`mt-1.5 w-full rounded-xl border bg-canvas dark:bg-zinc-950 px-4 py-3 text-ink dark:text-zinc-100 outline-none transition-colors focus:bg-white dark:focus:bg-zinc-900 ${
+          error ? "border-coral dark:border-red-500 focus:border-coral dark:focus:border-red-500" : "border-ink-line dark:border-zinc-700 focus:border-teal dark:focus:border-teal-500"
         }`}
       />
       {error && (
-        <p id={`${name}-error`} className="mt-1.5 text-xs text-coral-dark">
+        <p id={`${name}-error`} className="mt-1.5 text-xs text-coral-dark dark:text-red-400">
           {error}
         </p>
       )}
@@ -258,7 +244,7 @@ function Area({
 }) {
   return (
     <div>
-      <label htmlFor={name} className="text-sm font-semibold text-ink">
+      <label htmlFor={name} className="text-sm font-semibold text-ink dark:text-zinc-200">
         {label}
       </label>
       <textarea
@@ -266,7 +252,7 @@ function Area({
         name={name}
         rows={rows}
         defaultValue={defaultValue ?? ""}
-        className="mt-1.5 w-full resize-y rounded-xl border border-ink-line bg-canvas px-4 py-3 text-ink outline-none transition-colors focus:border-teal focus:bg-white"
+        className="mt-1.5 w-full resize-y rounded-xl border border-ink-line dark:border-zinc-700 bg-canvas dark:bg-zinc-950 px-4 py-3 text-ink dark:text-zinc-100 outline-none transition-colors focus:border-teal dark:focus:border-teal-500 focus:bg-white dark:focus:bg-zinc-900"
       />
     </div>
   );
