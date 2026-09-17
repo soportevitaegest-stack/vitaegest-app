@@ -1,15 +1,36 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "@/components/layout/UserMenu";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 
 // Encabezado superior del área privada. El título lo define cada página vía props.
-export async function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: prof } = await supabase
-    .from("professionals")
-    .select("full_name, clinic_name")
-    .single();
+export function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
+  const [datosUsuario, setDatosUsuario] = useState({ nombre: "", email: "", consultorio: "" });
+
+  useEffect(() => {
+    const cargarUsuario = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data: prof } = await supabase
+          .from("professionals")
+          .select("full_name, clinic_name")
+          .eq("id", user.id)
+          .single();
+
+        setDatosUsuario({
+          nombre: prof?.full_name ?? user.email ?? "",
+          email: user.email ?? "",
+          consultorio: prof?.clinic_name ?? ""
+        });
+      }
+    };
+    
+    cargarUsuario();
+  }, []);
 
   return (
     <header className="shrink-0 border-b border-line bg-surface px-5 md:px-7 py-4 flex items-center gap-4">
@@ -21,9 +42,9 @@ export async function Topbar({ title, subtitle }: { title: string; subtitle?: st
       <div className="flex items-center gap-3">
         <ThemeToggle />
         <UserMenu
-          nombre={prof?.full_name ?? user?.email ?? ""}
-          email={user?.email ?? ""}
-          consultorio={prof?.clinic_name}
+          nombre={datosUsuario.nombre}
+          email={datosUsuario.email}
+          consultorio={datosUsuario.consultorio}
         />
       </div>
     </header>
