@@ -53,7 +53,8 @@ export default async function AgendarPage({ params }: { params: { slug: string }
           </div>
         )}
 
-        <PublicBooking slug={params.slug} />
+        {/* ACÁ ESTÁ EL CAMBIO: Le pasamos la info al formulario */}
+        <PublicBooking slug={params.slug} info={info} />
       </div>
     </main>
   );
