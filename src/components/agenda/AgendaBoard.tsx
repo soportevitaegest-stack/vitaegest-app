@@ -20,16 +20,16 @@ import { updateAppointmentStatus } from "@/server/actions/appointments";
 import { NuevoTurnoForm } from "./NuevoTurnoForm";
 import { EditarTurnoForm } from "./EditarTurnoForm";
 import { WhatsappReminderButton } from "./WhatsappReminderButton";
+import { CintaSede } from "@/components/agenda/FiltroSede"; // <-- INJERTO 1: Importamos la cinta de color
 
 const navBtn =
   "w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-ink hover:bg-surface-2 trans border border-line";
 const chip = "inline-flex items-center gap-1 rounded-full text-[11px] font-semibold px-2 py-0.5";
 
-// Rango horario visible y alto de cada franja (px).
 const H0 = 8;
 const H1 = 20;
 const PX = 56;
-const GUT = 56; // ancho de la columna de horas
+const GUT = 56; 
 const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 export function AgendaBoard({
@@ -39,6 +39,7 @@ export function AgendaBoard({
   orders,
   services,
   reminderTemplate,
+  sedes, // <-- INJERTO 2: Recibimos las sedes
 }: {
   appointments: AppointmentRow[];
   patients: PatientLite[];
@@ -46,6 +47,7 @@ export function AgendaBoard({
   orders: OrderLite[];
   services: ServiceLite[];
   reminderTemplate: string;
+  sedes: any[]; // Lo dejamos genérico para no renegar con los tipos
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -58,7 +60,14 @@ export function AgendaBoard({
 
   const days = useMemo(() => weekDays(ref), [ref]);
   const hours = useMemo(() => Array.from({ length: H1 - H0 + 1 }, (_, i) => H0 + i), []);
-  const trackH = (hours.length - 1) * PX; // alto útil de la grilla (última etiqueta al pie)
+  const trackH = (hours.length - 1) * PX; 
+
+  // INJERTO 3: Armamos un diccionario para buscar la sede rapidísimo por su ID
+  const sedesPorId = useMemo(() => {
+    const map: Record<string, any> = {};
+    sedes?.forEach((s) => { map[s.id] = s; });
+    return map;
+  }, [sedes]);
 
   const countByDay = useMemo(() => {
     const m: Record<string, number> = {};
@@ -85,7 +94,6 @@ export function AgendaBoard({
     [appointments, area]
   );
 
-  // Bandeja: turnos que reservó el paciente (autogestión) y esperan confirmación.
   const pendingSelf = useMemo(
     () =>
       appointments
@@ -113,7 +121,6 @@ export function AgendaBoard({
 
   const rangeLabel = `${days[0].getDate()}/${days[0].getMonth() + 1} – ${days[5].getDate()}/${days[5].getMonth() + 1}`;
 
-  // Posición vertical (px) de un turno dentro de la grilla, acotada al rango visible.
   const blockGeom = (a: AppointmentRow) => {
     const s = clockInTZ(a.start_at);
     const e = clockInTZ(a.end_at);
@@ -162,7 +169,6 @@ export function AgendaBoard({
         </div>
       </div>
 
-      {/* Bandeja de autoagendados pendientes de confirmación */}
       {pendingSelf.length > 0 && (
         <div className="rounded-xl3 border p-4" style={{ background: "var(--amber-soft)", borderColor: "var(--amber)" }}>
           <h3 className="font-display font-bold text-[13.5px] mb-2.5 flex items-center gap-2" style={{ color: "var(--amber)" }}>
@@ -221,11 +227,9 @@ export function AgendaBoard({
       )}
 
       {view === "week" ? (
-        /* ---------- Vista semanal ---------- */
         <div className="bg-surface border border-line rounded-xl3 shadow-soft overflow-hidden">
           <div className="overflow-x-auto">
             <div style={{ minWidth: 760 }}>
-              {/* Cabecera de días (fila separada, no comparte contexto con los bloques) */}
               <div className="grid border-b border-line" style={{ gridTemplateColumns: `${GUT}px repeat(6,1fr)` }}>
                 <div />
                 {days.map((d, i) => {
@@ -245,9 +249,7 @@ export function AgendaBoard({
                 })}
               </div>
 
-              {/* Cuerpo: columna de horas + 6 pistas de día, cada una de alto fijo */}
               <div className="grid pt-2.5" style={{ gridTemplateColumns: `${GUT}px repeat(6,1fr)` }}>
-                {/* Columna de horas */}
                 <div className="relative" style={{ height: trackH + PX / 2 }}>
                   {hours.map((h, i) => (
                     <div key={h} className="absolute right-2 text-[10.5px] text-muted tnum" style={{ top: i * PX, transform: "translateY(-50%)" }}>
@@ -256,7 +258,6 @@ export function AgendaBoard({
                   ))}
                 </div>
 
-                {/* Pistas por día */}
                 {days.map((d) => {
                   const k = toDateKey(d);
                   const isToday = k === toDateKey(new Date());
@@ -267,14 +268,15 @@ export function AgendaBoard({
                       className="relative border-l border-line overflow-hidden"
                       style={{ height: trackH + PX / 2, background: isToday ? "var(--primary-soft)" : undefined }}
                     >
-                      {/* líneas de hora */}
                       {hours.map((h, i) => (
                         <div key={h} className="absolute left-0 right-0 border-t border-line" style={{ top: i * PX }} />
                       ))}
-                      {/* bloques de turno */}
                       {list.map((a) => {
                         const { top, height } = blockGeom(a);
                         const col = STATUS_META[a.status].fg;
+                        // Hacemos el cast a 'any' para extraer location_id sin problemas de TS
+                        const locId = (a as any).location_id; 
+
                         return (
                           <button
                             key={a.id}
@@ -285,7 +287,14 @@ export function AgendaBoard({
                           >
                             <div className="text-[10.5px] font-bold tnum leading-tight" style={{ color: col }}>{fmtTime(a.start_at)}</div>
                             <div className="text-[11.5px] font-semibold truncate leading-tight">{patientName(a).split(" ")[0]}</div>
-                            {height > 42 && <div className="text-[10px] text-muted truncate">{AREA_LABELS[a.area]}</div>}
+                            
+                            {/* INJERTO 4: CintaSede en Vista Semana (solo si hay espacio) */}
+                            {height > 42 && locId && sedesPorId[locId] && (
+                              <div className="mt-0.5">
+                                <CintaSede sede={sedesPorId[locId]} mostrarNombre />
+                              </div>
+                            )}
+
                           </button>
                         );
                       })}
@@ -326,6 +335,8 @@ export function AgendaBoard({
               <div className="divide-y" style={{ borderColor: "var(--border)" }}>
                 {dayAppts.map((a) => {
                   const st = STATUS_META[a.status];
+                  const locId = (a as any).location_id;
+
                   return (
                     <div key={a.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3.5 flex-wrap">
                       <div className="w-14 text-center shrink-0">
@@ -339,6 +350,12 @@ export function AgendaBoard({
                             {a.coverage_type === "obra_social" ? "Obra social" : "Particular"}
                           </span>
                           {a.treatment_order_id && <span className={chip} style={{ background: "var(--primary-soft)", color: "var(--primary-ink)" }}>Bono</span>}
+                          
+                          {/* INJERTO 5: CintaSede en Vista Diaria */}
+                          {locId && sedesPorId[locId] && (
+                            <CintaSede sede={sedesPorId[locId]} mostrarNombre />
+                          )}
+
                         </div>
                       </div>
                       <span className={chip} style={{ background: st.bg, color: st.fg }}>{st.label}</span>
