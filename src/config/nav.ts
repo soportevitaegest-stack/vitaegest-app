@@ -34,6 +34,8 @@ export const NAV: NavItem[] = [
   { href: "/facturacion", label: "Facturación", icono: "facturacion" },
   { href: "/exportar", label: "Exportar", icono: "exportar" },
   { href: "/configuracion", label: "Configuración", icono: "configuracion" },
+  // NUEVO INJERTO: El acceso a la nueva pantalla de múltiples consultorios
+  { href: "/configuracion/agenda", label: "Horarios y Sedes", icono: "agenda" }, 
 ];
 
 /** Filtra el menú según las especialidades del profesional. */
