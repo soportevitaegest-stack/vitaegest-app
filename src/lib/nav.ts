@@ -8,4 +8,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/pacientes", label: "Mis Pacientes", icon: "users" },
   { href: "/facturacion", label: "Facturación", icon: "bill" },
   { href: "/configuracion", label: "Configuración", icon: "gear" },
+  // NUEVO INJERTO: El botón para manejar múltiples consultorios
+  { href: "/configuracion/agenda", label: "Horarios y Sedes", icon: "calendar" },
 ];
