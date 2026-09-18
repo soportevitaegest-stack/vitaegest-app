@@ -19,9 +19,11 @@ function humanize(msg: string): string {
   return "No se pudo completar la solicitud. Intentá de nuevo.";
 }
 
-export async function getPublicSlots(slug: string, date: string): Promise<{ slots?: Slot[]; error?: string }> {
+// INJERTO 1: Agregamos el parámetro location_id para que Vercel no chille
+export async function getPublicSlots(slug: string, date: string, location_id?: string | null): Promise<{ slots?: Slot[]; error?: string }> {
   const supabase = createPortalClient();
-  const { data, error } = await supabase.rpc("public_booking_slots", { p_slug: slug, p_date: date });
+  // Le pasamos p_location a la base de datos
+  const { data, error } = await supabase.rpc("public_booking_slots", { p_slug: slug, p_date: date, p_location: location_id || null });
   if (error) return { error: humanize(error.message) };
   return { slots: (data ?? []) as Slot[] };
 }
@@ -34,12 +36,13 @@ export type PublicBookingForm = {
   date: string;
   time: string;
   reason: string;
+  location?: string | null; // INJERTO 2: Agregamos la sede al molde del formulario
 };
 
 export async function requestPublicAppointment(
   slug: string,
   f: PublicBookingForm
-): Promise<{ ok?: boolean; error?: string; portalToken?: string; deposit?: any; payment?: any; appointmentId?: string }> {
+): Promise<{ ok?: boolean; error?: string; portalToken?: string; deposit?: any; payment?: any; appointmentId?: string; location?: any }> {
   if (!f.first_name.trim() || !f.last_name.trim()) return { error: "Ingresá tu nombre y apellido." };
   const start = localToUtcISO(f.date, f.time);
   if (!start) return { error: "Fecha u horario inválidos." };
@@ -54,11 +57,11 @@ export async function requestPublicAppointment(
     p_start: start,
     p_area: "general",
     p_reason: f.reason || null,
+    p_location: f.location || null, // INJERTO 3: Mandamos la sede elegida a la base de datos
   });
   
   if (error) return { error: humanize(error.message) };
   
-  // Acá está el cambio: le decimos que extraiga absolutamente todo lo que manda la base de datos
   const d = data as any;
   
   return { 
@@ -66,6 +69,7 @@ export async function requestPublicAppointment(
     portalToken: d?.portal_token,
     deposit: d?.deposit,
     payment: d?.payment,
-    appointmentId: d?.appointment_id
+    appointmentId: d?.appointment_id || d?.appointmentId,
+    location: d?.location // INJERTO 4: Devolvemos la sede para mostrar la dirección en el ticket final
   };
 }
