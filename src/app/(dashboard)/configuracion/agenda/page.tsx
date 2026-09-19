@@ -47,8 +47,10 @@ export default async function ConfiguracionAgenda() {
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-6">
       <header className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">Tu agenda</h1>
-        <p className="mt-2 text-slate-500">
+        {/* Usamos text-ink para que sea negro de día y blanco de noche */}
+        <h1 className="text-2xl font-semibold text-ink sm:text-3xl">Tu agenda</h1>
+        {/* Usamos text-muted para el texto secundario */}
+        <p className="mt-2 text-muted">
           Dónde atendés y en qué horarios. Es lo que ven tus pacientes cuando
           piden turno, así que conviene que esté fiel a la realidad.
         </p>
@@ -65,7 +67,7 @@ export default async function ConfiguracionAgenda() {
       </div>
 
       {!cfg?.booking_enabled && (
-        <p className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
+        <p className="mt-6 rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm leading-relaxed text-muted">
           Las reservas online están apagadas. Mientras estén así, estos horarios
           organizan tu agenda pero tus pacientes no pueden pedir turno solas.
         </p>
