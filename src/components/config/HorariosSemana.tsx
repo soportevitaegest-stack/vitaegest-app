@@ -90,10 +90,10 @@ export function HorariosSemana({
   );
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
+    <section className="rounded-2xl border border-line bg-surface p-5 sm:p-7">
       <header className="mb-5">
-        <h2 className="text-xl font-semibold text-slate-900">Tus horarios</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-xl font-semibold text-ink">Tus horarios</h2>
+        <p className="mt-1 text-sm text-muted">
           Configurá cada día por separado. Podés tener dos tramos el mismo día
           —por ejemplo mañana y tarde— y atender en lugares distintos.
         </p>
@@ -112,23 +112,24 @@ export function HorariosSemana({
             <div
               key={dia.n}
               className={`rounded-xl border p-4 transition-colors ${
-                atiende ? "border-slate-200 bg-white" : "border-slate-100 bg-slate-50"
+                atiende ? "border-line bg-surface" : "border-line/50 bg-surface-2"
               }`}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <span
-                    className={`grid h-9 w-9 place-items-center rounded-lg text-xs font-bold ${
-                      atiende
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-slate-100 text-slate-400"
-                    }`}
+                    className={`grid h-9 w-9 place-items-center rounded-lg text-xs font-bold`}
+                    style={
+                      atiende 
+                        ? { background: "var(--primary-soft)", color: "var(--primary)" } 
+                        : { background: "var(--surface)", border: "1px solid var(--border)", color: "var(--muted)" }
+                    }
                   >
                     {dia.corto}
                   </span>
                   <div>
-                    <p className="font-medium text-slate-900">{dia.largo}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="font-medium text-ink">{dia.largo}</p>
+                    <p className="text-xs text-muted">
                       {atiende
                         ? `${indices.length} ${indices.length === 1 ? "tramo" : "tramos"}`
                         : "No atendés"}
@@ -139,7 +140,7 @@ export function HorariosSemana({
                 <button
                   type="button"
                   onClick={() => agregarTramo(dia.n)}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400"
+                  className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-primary hover:bg-surface-2"
                 >
                   + Agregar horario
                 </button>
@@ -150,7 +151,7 @@ export function HorariosSemana({
                   {indices.map(({ b, i }) => (
                     <li
                       key={b.id ?? `${dia.n}-${i}`}
-                      className="flex flex-wrap items-center gap-2.5 rounded-lg bg-slate-50 p-2.5"
+                      className="flex flex-wrap items-center gap-2.5 rounded-lg bg-surface-2 border border-line/50 p-2.5"
                     >
                       <label className="sr-only" htmlFor={`d${i}`}>
                         Desde
@@ -160,9 +161,9 @@ export function HorariosSemana({
                         type="time"
                         value={hhmm(b.start_time)}
                         onChange={(e) => editarTramo(i, { start_time: e.target.value })}
-                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+                        className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-primary transition-colors"
                       />
-                      <span className="text-sm text-slate-400">a</span>
+                      <span className="text-sm text-muted">a</span>
                       <label className="sr-only" htmlFor={`h${i}`}>
                         Hasta
                       </label>
@@ -171,7 +172,7 @@ export function HorariosSemana({
                         type="time"
                         value={hhmm(b.end_time)}
                         onChange={(e) => editarTramo(i, { end_time: e.target.value })}
-                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+                        className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-primary transition-colors"
                       />
 
                       {variasSedes && (
@@ -185,7 +186,7 @@ export function HorariosSemana({
                             onChange={(e) =>
                               editarTramo(i, { location_id: e.target.value || null })
                             }
-                            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+                            className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-primary transition-colors"
                           >
                             {sedesActivas.map((s) => (
                               <option key={s.id} value={s.id}>
@@ -196,7 +197,7 @@ export function HorariosSemana({
                         </>
                       )}
 
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted">
                         {turnosDelTramo(b, duracionPorDefecto)} turnos
                       </span>
 
@@ -204,7 +205,7 @@ export function HorariosSemana({
                         type="button"
                         onClick={() => quitarTramo(i)}
                         aria-label={`Quitar el horario de ${dia.largo}`}
-                        className="ml-auto rounded-lg px-2 py-1 text-sm text-slate-400 transition-colors hover:bg-white hover:text-red-600"
+                        className="ml-auto rounded-lg px-2 py-1 text-sm text-muted transition-colors hover:bg-surface hover:text-red-500"
                       >
                         Quitar
                       </button>
@@ -218,7 +219,7 @@ export function HorariosSemana({
       </div>
 
       {error && (
-        <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        <p className="mt-5 rounded-xl bg-red-900/20 border border-red-900/50 px-4 py-3 text-sm text-red-400">{error}</p>
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-4">
@@ -226,21 +227,21 @@ export function HorariosSemana({
           type="button"
           onClick={guardar}
           disabled={pendiente || !!error}
-          className="rounded-xl bg-emerald-600 px-5 py-2.5 font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-xl bg-primary px-5 py-2.5 font-semibold text-primary-ink transition-colors hover:bg-primary/90 disabled:opacity-50"
         >
           {pendiente ? "Guardando…" : "Guardar horarios"}
         </button>
 
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted">
           {totalSemanal} turnos por semana, si se llenara todo.
         </p>
 
         {guardado && !error && (
-          <p className="text-sm font-medium text-emerald-700">Guardado.</p>
+          <p className="text-sm font-medium text-primary">Guardado.</p>
         )}
       </div>
 
-      <p className="mt-4 text-xs leading-relaxed text-slate-400">
+      <p className="mt-4 text-xs leading-relaxed text-muted">
         Cambiar los horarios no toca los turnos ya agendados. Si dejás de
         atender un día que ya tenía turnos, esos turnos siguen ahí: revisalos
         desde la agenda.
