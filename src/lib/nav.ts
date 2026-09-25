@@ -6,6 +6,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Inicio", icon: "home" },
   { href: "/agenda", label: "Agenda / Turnos", icon: "calendar" },
   { href: "/pacientes", label: "Mis Pacientes", icon: "users" },
+  { href: "/plantillas", label: "Plantillas", icon: "bill" },
   { href: "/facturacion", label: "Facturación", icon: "bill" },
   { href: "/configuracion", label: "Configuración", icon: "gear" },
   // NUEVO INJERTO: El botón para manejar múltiples consultorios
