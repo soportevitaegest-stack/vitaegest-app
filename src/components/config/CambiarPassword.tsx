@@ -105,9 +105,9 @@ export function CambiarPassword({ email }: { email: string }) {
 
   return (
     <section className="space-y-6">
-      <form onSubmit={guardar} className="rounded-2xl border border-ink-line bg-white p-6 shadow-card">
+      <form onSubmit={guardar} className="rounded-2xl border border-line bg-surface p-6 shadow-soft">
         <h3 className="text-lg font-bold text-ink">Cambiar contraseña</h3>
-        <p className="mt-1 max-w-lg text-sm text-ink-soft">
+        <p className="mt-1 max-w-lg text-sm text-muted">
           Si entraste con una contraseña temporal, cambiala ahora. Mínimo {MIN}{" "}
           caracteres; mezclá mayúsculas, números y algún símbolo.
         </p>
@@ -138,12 +138,12 @@ export function CambiarPassword({ email }: { email: string }) {
                     <span
                       key={i}
                       className={`h-1.5 flex-1 rounded-full transition-colors ${
-                        i < fuerza.nivel ? fuerza.color : "bg-ink-line"
+                        i < fuerza.nivel ? fuerza.color : "bg-line"
                       }`}
                     />
                   ))}
                 </div>
-                <p className="mt-1.5 text-xs text-ink-faint" role="status">
+                <p className="mt-1.5 text-xs text-muted" role="status">
                   {fuerza.texto}
                 </p>
               </div>
@@ -160,16 +160,16 @@ export function CambiarPassword({ email }: { email: string }) {
               autoComplete="new-password"
             />
             {repetir.length > 0 && !coincide && (
-              <p className="mt-1.5 text-xs text-coral-dark">Las dos no coinciden.</p>
+              <p className="mt-1.5 text-xs text-coral-ink">Las dos no coinciden.</p>
             )}
           </div>
 
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-soft">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-muted">
             <input
               type="checkbox"
               checked={ver}
               onChange={(e) => setVer(e.target.checked)}
-              className="h-4 w-4 accent-[#1ABC9C]"
+              className="h-4 w-4 accent-teal"
             />
             Ver lo que escribo
           </label>
@@ -180,8 +180,8 @@ export function CambiarPassword({ email }: { email: string }) {
             role="status"
             className={`mt-5 max-w-md rounded-xl px-4 py-3 text-sm ${
               msg.tone === "ok"
-                ? "bg-teal-soft text-primary-700"
-                : "bg-coral-soft text-coral-dark"
+                ? "bg-teal-soft text-primary-ink"
+                : "bg-coral-soft text-coral-ink"
             }`}
           >
             {msg.text}
@@ -193,9 +193,9 @@ export function CambiarPassword({ email }: { email: string }) {
         </button>
       </form>
 
-      <div className="rounded-2xl border border-ink-line bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-line bg-surface p-6 shadow-soft">
         <h3 className="text-lg font-bold text-ink">Cerrar sesión en todos lados</h3>
-        <p className="mt-1 max-w-lg text-sm text-ink-soft">
+        <p className="mt-1 max-w-lg text-sm text-muted">
           Si entraste desde una compu prestada, del consultorio o perdiste el
           celular, esto cierra tu sesión en todos los dispositivos. Vas a tener
           que volver a entrar acá también.
@@ -244,14 +244,14 @@ function Campo({
         value={value}
         autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 w-full rounded-xl border border-ink-line bg-canvas px-4 py-3 text-ink outline-none transition-colors focus:border-teal focus:bg-white"
+        className="mt-1.5 w-full rounded-xl border border-line bg-canvas px-4 py-3 text-ink outline-none transition-colors focus:border-teal focus:bg-surface"
       />
     </div>
   );
 }
 
 function medirFuerza(pw: string): { nivel: number; texto: string; color: string } {
-  if (!pw) return { nivel: 0, texto: "", color: "bg-ink-line" };
+  if (!pw) return { nivel: 0, texto: "", color: "bg-line" };
   let n = 0;
   if (pw.length >= MIN) n++;
   if (pw.length >= 12) n++;

@@ -59,15 +59,15 @@ export function ExportPanel() {
   return (
     <div className="space-y-6">
       {st.error && (
-        <p className="rounded-xl bg-coral-soft px-4 py-3 text-sm text-coral-dark" role="alert">
+        <p className="rounded-xl bg-coral-soft px-4 py-3 text-sm text-coral-ink" role="alert">
           {st.error}
         </p>
       )}
 
       {/* ── Facturación ──────────────────────────────────────────────────── */}
-      <section className="rounded-2xl border border-ink-line bg-white p-6 shadow-card">
+      <section className="rounded-2xl border border-line bg-surface p-6 shadow-soft">
         <h2 className="text-lg font-bold text-ink">Facturación de un período</h2>
-        <p className="mt-1 text-sm text-ink-soft">
+        <p className="mt-1 text-sm text-muted">
           El Excel trae tres hojas: resumen, detalle de cada cobro y totales por
           obra social. El PDF es el mismo resumen listo para imprimir.
         </p>
@@ -79,7 +79,7 @@ export function ExportPanel() {
               type="date"
               value={filtro.desde}
               onChange={(e) => setFiltro({ ...filtro, desde: e.target.value })}
-              className="mt-1.5 w-full rounded-xl border border-ink-line bg-canvas px-3 py-2.5 text-ink outline-none focus:border-teal focus:bg-white"
+              className="mt-1.5 w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-ink outline-none focus:border-teal focus:bg-surface"
             />
           </label>
           <label className="text-sm">
@@ -88,7 +88,7 @@ export function ExportPanel() {
               type="date"
               value={filtro.hasta}
               onChange={(e) => setFiltro({ ...filtro, hasta: e.target.value })}
-              className="mt-1.5 w-full rounded-xl border border-ink-line bg-canvas px-3 py-2.5 text-ink outline-none focus:border-teal focus:bg-white"
+              className="mt-1.5 w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-ink outline-none focus:border-teal focus:bg-surface"
             />
           </label>
           <label className="text-sm">
@@ -98,7 +98,7 @@ export function ExportPanel() {
               onChange={(e) =>
                 setFiltro({ ...filtro, concepto: e.target.value as FiltroFacturacion["concepto"] })
               }
-              className="mt-1.5 w-full rounded-xl border border-ink-line bg-canvas px-3 py-2.5 text-ink outline-none focus:border-teal focus:bg-white"
+              className="mt-1.5 w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-ink outline-none focus:border-teal focus:bg-surface"
             >
               <option value="all">Todo</option>
               <option value="session">Solo sesiones</option>
@@ -115,7 +115,7 @@ export function ExportPanel() {
                   estado: (e.target.value || null) as FiltroFacturacion["estado"],
                 })
               }
-              className="mt-1.5 w-full rounded-xl border border-ink-line bg-canvas px-3 py-2.5 text-ink outline-none focus:border-teal focus:bg-white"
+              className="mt-1.5 w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-ink outline-none focus:border-teal focus:bg-surface"
             >
               <option value="">Todos</option>
               <option value="paid">Cobrado</option>
@@ -167,9 +167,9 @@ export function ExportPanel() {
       </section>
 
       {/* ── Pacientes ────────────────────────────────────────────────────── */}
-      <section className="rounded-2xl border border-ink-line bg-white p-6 shadow-card">
+      <section className="rounded-2xl border border-line bg-surface p-6 shadow-soft">
         <h2 className="text-lg font-bold text-ink">Listado de pacientes</h2>
-        <p className="mt-1 text-sm text-ink-soft">
+        <p className="mt-1 text-sm text-muted">
           Datos de contacto, fecha de alta, última sesión y cuántas sesiones lleva
           cada una.
         </p>
@@ -183,9 +183,9 @@ export function ExportPanel() {
       </section>
 
       {/* ── Backup completo ──────────────────────────────────────────────── */}
-      <section className="rounded-2xl border-2 border-teal bg-white p-6 shadow-lift">
+      <section className="rounded-2xl border-2 border-teal bg-surface p-6 shadow-lg2">
         <h2 className="text-lg font-bold text-ink">Llevarte todos tus datos</h2>
-        <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+        <p className="mt-1 max-w-2xl text-sm text-muted">
           Un ZIP con absolutamente todo: pacientes, evoluciones, turnos, cobros y
           bonos. Viene en Excel para leerlo, y en JSON por si algún día querés
           pasarlo a otro sistema. Tus historias clínicas son tuyas.
@@ -203,7 +203,7 @@ export function ExportPanel() {
               ] as [string, number][]
             ).map(([label, n]) => (
               <div key={label} className="rounded-xl bg-canvas px-4 py-3">
-                <p className="text-xs uppercase tracking-wide text-ink-faint">{label}</p>
+                <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
                 <p className="mt-0.5 text-xl font-bold tabular-nums text-primary">
                   {n?.toLocaleString("es-AR") ?? 0}
                 </p>
@@ -214,7 +214,7 @@ export function ExportPanel() {
 
         {st.corriendo === "backup" && (
           <div className="mt-5">
-            <div className="flex justify-between text-sm text-ink-soft">
+            <div className="flex justify-between text-sm text-muted">
               <span>{st.paso}</span>
               <span className="tabular-nums">{st.pct}%</span>
             </div>
@@ -235,13 +235,13 @@ export function ExportPanel() {
           {st.corriendo === "backup" ? "Preparando…" : "Descargar todo (.zip)"}
         </button>
 
-        <p className="mt-3 text-xs text-ink-faint">
+        <p className="mt-3 text-xs text-muted">
           Se arma en tu navegador: los datos no pasan por ningún servidor. Con
           muchas evoluciones puede tardar un minuto — no cierres la pestaña.
         </p>
       </section>
 
-      <p className="rounded-xl bg-canvas px-5 py-4 text-sm text-ink-soft">
+      <p className="rounded-xl bg-canvas px-5 py-4 text-sm text-muted">
         <strong className="text-ink">Guardalos bien.</strong> Estos archivos
         contienen historias clínicas. Van a una carpeta tuya, no a un mail ni a
         un grupo de WhatsApp.
@@ -255,7 +255,7 @@ function Atajo({ children, onClick }: { children: React.ReactNode; onClick: () =
     <button
       type="button"
       onClick={onClick}
-      className="rounded-lg bg-canvas px-3 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:text-primary"
+      className="rounded-lg bg-canvas px-3 py-1.5 text-xs font-semibold text-muted transition-colors hover:text-primary"
     >
       {children}
     </button>

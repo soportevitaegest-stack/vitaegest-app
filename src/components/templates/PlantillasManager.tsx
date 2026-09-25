@@ -63,7 +63,7 @@ export function PlantillasManager({
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-3">
-        <div role="tablist" aria-label="Filtrar por área" className="flex gap-1.5 rounded-xl bg-slate-100 p-1">
+        <div role="tablist" aria-label="Filtrar por área" className="flex gap-1.5 rounded-xl bg-surface-2 p-1">
           {([{ v: "todas", t: "Todas" }, ...AREAS] as { v: Area | "todas"; t: string }[])
             .filter((o) =>
               o.v === "todas" ||
@@ -79,8 +79,8 @@ export function PlantillasManager({
                 onClick={() => setFiltro(o.v)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   filtro === o.v
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-surface text-ink shadow-sm"
+                    : "text-muted hover:text-ink"
                 }`}
               >
                 {o.t}
@@ -94,14 +94,14 @@ export function PlantillasManager({
             setEditando("nueva");
             setError(null);
           }}
-          className="ml-auto rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+          className="ml-auto rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal"
         >
           + Nueva plantilla
         </button>
       </div>
 
       {error && (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        <p className="rounded-xl bg-coral-soft px-4 py-3 text-sm text-coral-ink">{error}</p>
       )}
 
       {editando && (
@@ -118,13 +118,13 @@ export function PlantillasManager({
 
       {/* ── Mis plantillas ─────────────────────────────────────────────── */}
       <section>
-        <h2 className="text-lg font-semibold text-slate-900">Mis plantillas</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-lg font-semibold text-ink">Mis plantillas</h2>
+        <p className="mt-1 text-sm text-muted">
           Las que armaste vos. Se pueden editar y archivar cuando quieras.
         </p>
 
         {mias.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+          <p className="mt-4 rounded-xl border border-dashed border-line bg-surface-2 px-4 py-8 text-center text-sm text-muted">
             Todavía no armaste ninguna. Podés empezar de cero con “Nueva
             plantilla”, o tomar una de las de abajo y tocar “Copiar y editar”.
           </p>
@@ -152,10 +152,10 @@ export function PlantillasManager({
 
       {/* ── Plantillas del sistema ─────────────────────────────────────── */}
       <section>
-        <h2 className="text-lg font-semibold text-slate-900">Vienen con el sistema</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-lg font-semibold text-ink">Vienen con el sistema</h2>
+        <p className="mt-1 text-sm text-muted">
           Estas no se editan: son iguales para todas. Tocá{" "}
-          <strong className="font-semibold text-slate-700">Copiar y editar</strong> para
+          <strong className="font-semibold text-ink">Copiar y editar</strong> para
           hacerte tu propia versión y cambiarle lo que quieras.
         </p>
 
@@ -190,54 +190,54 @@ function TarjetaPlantilla({
   const [abierta, setAbierta] = useState(false);
 
   return (
-    <li className="flex flex-col rounded-xl border border-slate-200 bg-white p-4">
+    <li className="flex flex-col rounded-xl border border-line bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-semibold text-slate-900">{p.name}</p>
-          <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-slate-400">
+          <p className="font-semibold text-ink">{p.name}</p>
+          <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted">
             {nombreArea(p.area)} · {p.items.length}{" "}
             {p.items.length === 1 ? "indicación" : "indicaciones"}
           </p>
         </div>
         {p.is_system && (
-          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+          <span className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-muted">
             Sistema
           </span>
         )}
       </div>
 
       {p.description && (
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">{p.description}</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted">{p.description}</p>
       )}
 
       <button
         type="button"
         onClick={() => setAbierta((v) => !v)}
         aria-expanded={abierta}
-        className="mt-3 self-start text-sm font-medium text-emerald-700 hover:underline"
+        className="mt-3 self-start text-sm font-medium text-primary-ink hover:underline"
       >
         {abierta ? "Ocultar" : "Ver las indicaciones"}
       </button>
 
       {abierta && (
-        <ol className="mt-2 space-y-2 rounded-lg bg-slate-50 p-3">
+        <ol className="mt-2 space-y-2 rounded-lg bg-surface-2 p-3">
           {p.items.map((i, k) => (
             <li key={k} className="text-sm">
-              <span className="font-medium text-slate-900">{i.name}</span>
+              <span className="font-medium text-ink">{i.name}</span>
               {i.detail && (
-                <span className="mt-0.5 block text-slate-600">{i.detail}</span>
+                <span className="mt-0.5 block text-muted">{i.detail}</span>
               )}
             </li>
           ))}
         </ol>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+      <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-3">
         {onEditar && (
           <button
             type="button"
             onClick={onEditar}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-slate-400"
+            className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink hover:border-teal"
           >
             Editar
           </button>
@@ -246,7 +246,7 @@ function TarjetaPlantilla({
           type="button"
           disabled={pendiente}
           onClick={onDuplicar}
-          className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-slate-400 disabled:opacity-50"
+          className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink hover:border-teal disabled:opacity-50"
         >
           Copiar y editar
         </button>
@@ -255,7 +255,7 @@ function TarjetaPlantilla({
             type="button"
             disabled={pendiente}
             onClick={onArchivar}
-            className="ml-auto rounded-lg px-3 py-1.5 text-sm text-slate-400 hover:text-red-600 disabled:opacity-50"
+            className="ml-auto rounded-lg px-3 py-1.5 text-sm text-muted hover:text-coral-ink disabled:opacity-50"
           >
             Archivar
           </button>
@@ -307,16 +307,16 @@ function FormularioPlantilla({
   return (
     <form
       onSubmit={(e) => void enviar(e)}
-      className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-5 sm:p-6"
+      className="rounded-2xl border-2 border-line bg-primary-soft/40 p-5 sm:p-6"
     >
-      <h2 className="text-lg font-semibold text-slate-900">
+      <h2 className="text-lg font-semibold text-ink">
         {plantilla ? `Editar ${plantilla.name}` : "Nueva plantilla"}
       </h2>
 
       <div className="mt-4 grid gap-4">
         <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
           <div>
-            <label htmlFor="pl-nombre" className="text-sm font-medium text-slate-700">
+            <label htmlFor="pl-nombre" className="text-sm font-medium text-ink">
               Nombre
             </label>
             <input
@@ -325,18 +325,18 @@ function FormularioPlantilla({
               onChange={(e) => setNombre(e.target.value)}
               required
               placeholder="Post-operatorio de abdominoplastia · primera semana"
-              className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2"
+              className="mt-1.5 w-full rounded-lg border border-line px-3 py-2"
             />
           </div>
           <div>
-            <label htmlFor="pl-area" className="text-sm font-medium text-slate-700">
+            <label htmlFor="pl-area" className="text-sm font-medium text-ink">
               Área
             </label>
             <select
               id="pl-area"
               value={area}
               onChange={(e) => setArea(e.target.value as Area)}
-              className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2"
+              className="mt-1.5 w-full rounded-lg border border-line px-3 py-2"
             >
               {AREAS.filter((a) => areasPermitidas.includes(a.v)).map((a) => (
                 <option key={a.v} value={a.v}>
@@ -348,7 +348,7 @@ function FormularioPlantilla({
         </div>
 
         <div>
-          <label htmlFor="pl-desc" className="text-sm font-medium text-slate-700">
+          <label htmlFor="pl-desc" className="text-sm font-medium text-ink">
             Para qué la usás
           </label>
           <input
@@ -356,22 +356,22 @@ function FormularioPlantilla({
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
             placeholder="Pautas domiciliarias para las dos primeras semanas."
-            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2"
+            className="mt-1.5 w-full rounded-lg border border-line px-3 py-2"
           />
         </div>
 
         <div>
-          <span className="text-sm font-medium text-slate-700">Indicaciones</span>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <span className="text-sm font-medium text-ink">Indicaciones</span>
+          <p className="mt-0.5 text-xs text-muted">
             Un renglón por ejercicio o pauta. El detalle es lo que lee tu paciente
             en su portal: escribilo como se lo dirías.
           </p>
 
           <ul className="mt-3 space-y-3">
             {items.map((it, i) => (
-              <li key={i} className="rounded-lg bg-white p-3">
+              <li key={i} className="rounded-lg bg-surface p-3">
                 <div className="flex items-center gap-2">
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-surface-2 text-xs font-bold text-muted">
                     {i + 1}
                   </span>
                   <input
@@ -379,13 +379,13 @@ function FormularioPlantilla({
                     value={it.name}
                     onChange={(e) => editarItem(i, { name: e.target.value })}
                     placeholder="Bombeo de tobillos"
-                    className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium"
+                    className="flex-1 rounded-lg border border-line px-3 py-1.5 text-sm font-medium"
                   />
                   <button
                     type="button"
                     onClick={() => setItems(items.filter((_, k) => k !== i))}
                     aria-label={`Quitar la indicación ${i + 1}`}
-                    className="rounded-lg px-2 py-1 text-sm text-slate-400 hover:text-red-600"
+                    className="rounded-lg px-2 py-1 text-sm text-muted hover:text-coral-ink"
                   >
                     Quitar
                   </button>
@@ -396,7 +396,7 @@ function FormularioPlantilla({
                   onChange={(e) => editarItem(i, { detail: e.target.value })}
                   rows={2}
                   placeholder="Sentada o acostada, flexioná y extendé los pies 2 min, 3 veces al día."
-                  className="mt-2 w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-2 w-full resize-y rounded-lg border border-line px-3 py-2 text-sm"
                 />
               </li>
             ))}
@@ -405,28 +405,28 @@ function FormularioPlantilla({
           <button
             type="button"
             onClick={() => setItems([...items, { name: "", detail: "" }])}
-            className="mt-3 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-slate-500"
+            className="mt-3 rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink hover:border-teal"
           >
             + Agregar indicación
           </button>
         </div>
 
         {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <p className="rounded-lg bg-coral-soft px-3 py-2 text-sm text-coral-ink">{error}</p>
         )}
 
         <div className="flex justify-end gap-2">
           <button
             type="button"
             onClick={onCerrar}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium"
+            className="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-medium"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={pendiente}
-            className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             {pendiente ? "Guardando…" : "Guardar plantilla"}
           </button>

@@ -62,7 +62,7 @@ export function GuardarComoPlantilla({
 
   if (mensaje) {
     return (
-      <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
+      <p className="rounded-lg bg-primary-soft px-3 py-2 text-sm font-medium text-primary-ink">
         {mensaje}
       </p>
     );
@@ -73,7 +73,7 @@ export function GuardarComoPlantilla({
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-slate-400"
+        className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-teal"
       >
         Guardar como plantilla
       </button>
@@ -81,8 +81,8 @@ export function GuardarComoPlantilla({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-      <p className="text-sm font-medium text-slate-900">
+    <div className="rounded-xl border border-line bg-surface-2 p-4">
+      <p className="text-sm font-medium text-ink">
         Guardar estas {utiles.length} indicaciones como plantilla
       </p>
 
@@ -92,13 +92,13 @@ export function GuardarComoPlantilla({
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           placeholder="Post-operatorio · primera semana"
-          className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          className="rounded-lg border border-line px-3 py-2 text-sm"
         />
         <select
           aria-label="Área de la plantilla"
           value={area}
           onChange={(e) => setArea(e.target.value as Area)}
-          className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          className="rounded-lg border border-line px-3 py-2 text-sm"
         >
           <option value="general">General</option>
           <option value="pelvic_perineal">Uroginecología</option>
@@ -106,13 +106,13 @@ export function GuardarComoPlantilla({
         </select>
       </div>
 
-      {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="mt-2 text-sm text-coral-ink">{error}</p>}
 
       <div className="mt-3 flex justify-end gap-2">
         <button
           type="button"
           onClick={() => setAbierto(false)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm"
+          className="rounded-lg border border-line bg-surface px-3 py-1.5 text-sm"
         >
           Cancelar
         </button>
@@ -120,7 +120,7 @@ export function GuardarComoPlantilla({
           type="button"
           onClick={() => void guardar()}
           disabled={pendiente || nombre.trim().length < 2}
-          className="rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
         >
           {pendiente ? "Guardando…" : "Guardar"}
         </button>
