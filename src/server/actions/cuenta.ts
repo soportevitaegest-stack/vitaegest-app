@@ -16,7 +16,9 @@ import { createClient } from "@/lib/supabase/server";
 
 /** Cierra la sesión en ESTE dispositivo y manda al login. */
 export async function cerrarSesion() {
-  const supabase = createClient();
+  // createClient() de @/lib/supabase/server es async: sin await, `supabase`
+  // sería una Promise y `supabase.auth` daría undefined.
+  const supabase = await createClient();
   await supabase.auth.signOut({ scope: "local" });
   revalidatePath("/", "layout");
   redirect("/login");
@@ -27,7 +29,7 @@ export async function cerrarSesion() {
  * Útil si alguien perdió el celular o sospecha que le entraron a la cuenta.
  */
 export async function cerrarTodasLasSesiones() {
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.auth.signOut({ scope: "global" });
   revalidatePath("/", "layout");
   redirect("/login?motivo=sesiones-cerradas");

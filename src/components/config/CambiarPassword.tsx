@@ -40,12 +40,22 @@ export function CambiarPassword({ email }: { email: string }) {
     setCargando(true);
 
     try {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!url || !anon) {
+        // Si esto salta, faltan las variables de entorno en Vercel. No es un
+        // problema de la contraseña y conviene decirlo con todas las letras.
+        setMsg({
+          tone: "error",
+          text: "Falta configuración del servidor (NEXT_PUBLIC_SUPABASE_URL / ANON_KEY). Avisale a soporte.",
+        });
+        return;
+      }
+
       // 1 · Verificar la contraseña actual sin tocar la sesión abierta.
-      const verificador = createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { auth: { persistSession: false, autoRefreshToken: false } },
-      );
+      const verificador = createSupabaseClient(url, anon, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
       const { error: errLogin } = await verificador.auth.signInWithPassword({
         email,
         password: actual,
@@ -54,7 +64,16 @@ export function CambiarPassword({ email }: { email: string }) {
         setMsg({ tone: "error", text: "La contraseña actual no es correcta." });
         return;
       }
-      await verificador.auth.signOut();
+
+      /* ⚠️ `scope: "local"` es obligatorio acá.
+         `signOut()` sin scope es GLOBAL: le revoca a este usuario TODOS los
+         refresh tokens en todos los dispositivos —incluida la sesión real que
+         está abierta en esta misma pestaña—. El paso 2 quedaba entonces sin
+         sesión válida y `updateUser` tiraba excepción, que caía en el catch de
+         abajo y mostraba el mensaje genérico.
+         Con "local" el cierre es solo en memoria de este cliente descartable:
+         no toca el servidor ni la sesión de ella. */
+      await verificador.auth.signOut({ scope: "local" });
 
       // 2 · Cambiarla con la sesión real.
       const supabase = createClient();
@@ -71,8 +90,14 @@ export function CambiarPassword({ email }: { email: string }) {
         tone: "ok",
         text: "Listo. Tu contraseña quedó cambiada y tu sesión sigue abierta.",
       });
-    } catch {
-      setMsg({ tone: "error", text: "No pudimos cambiar la contraseña. Probá de nuevo." });
+    } catch (e) {
+      // Nunca más un mensaje genérico a secas: si algo revienta, que se vea qué
+      // fue. Sin esto el error real queda invisible y no hay forma de arreglarlo.
+      const detalle = e instanceof Error ? e.message : String(e);
+      setMsg({
+        tone: "error",
+        text: `No pudimos cambiar la contraseña. Detalle técnico: ${detalle}`,
+      });
     } finally {
       setCargando(false);
     }
@@ -246,5 +271,9 @@ function traducir(mensaje: string): string {
   if (m.includes("weak") || m.includes("pwned"))
     return "Esa contraseña aparece en listas de contraseñas filtradas. Elegí otra.";
   if (m.includes("reauthentication")) return "Por seguridad, volvé a iniciar sesión y probá de nuevo.";
-  return "No pudimos cambiar la contraseña. Probá de nuevo.";
+  if (m.includes("refresh token") || m.includes("session") || m.includes("jwt"))
+    return "Tu sesión venció. Cerrá sesión, volvé a entrar y probá de nuevo.";
+  // El mensaje crudo va incluido a propósito: si aparece uno que no tenemos
+  // traducido, se ve cuál es en vez de quedar en la nada.
+  return `No pudimos cambiar la contraseña (${mensaje}).`;
 }
