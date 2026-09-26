@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/layout/Logo";
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [ver, setVer] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -45,8 +47,28 @@ export default function LoginPage() {
           </label>
           <label className="block">
             <span className="block text-[12.5px] font-semibold mb-1.5">Contraseña</span>
-            <input className={input} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            {/* Se puede ver lo escrito: las contraseñas temporales se entregan por
+                WhatsApp y se tipean a mano. Sin esto, un carácter mal puesto se
+                lee como "contraseña incorrecta" y no hay forma de detectarlo. */}
+            <input
+              className={input}
+              type={ver ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </label>
+
+          <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-muted">
+            <input
+              type="checkbox"
+              checked={ver}
+              onChange={(e) => setVer(e.target.checked)}
+              className="h-3.5 w-3.5 accent-teal"
+            />
+            Ver lo que escribo
+          </label>
+
           {error && (
             <div className="text-[12.5px] font-medium rounded-xl2 px-3 py-2" style={{ background: "var(--rose-soft)", color: "var(--rose)" }}>
               {error}
@@ -61,6 +83,12 @@ export default function LoginPage() {
             {loading ? "Ingresando…" : "Ingresar"}
           </button>
         </form>
+
+        <p className="mt-4 text-center text-[12.5px]">
+          <Link href="/recuperar" className="font-medium text-muted hover:text-ink">
+            Olvidé mi contraseña
+          </Link>
+        </p>
       </div>
     </div>
   );
