@@ -1,20 +1,29 @@
 import type { Metadata } from "next";
+import { Topbar } from "@/components/layout/Topbar";
 import { ExportPanel } from "@/components/export/ExportPanel";
 
 export const metadata: Metadata = { title: "Exportar datos · VitaeGest" };
 
+/**
+ * Estructura igual que el resto del sistema: <Topbar> + <main> con el scroll.
+ * El Topbar es el que trae el botón ☰ del menú en celular.
+ */
 export default function ExportarPage() {
   return (
-    <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-ink">Exportar datos</h1>
-        <p className="mt-1.5 max-w-2xl text-[15px] text-muted">
-          Descargá tu facturación para el contador, la historia clínica de una
-          paciente para derivar, o todo junto cuando quieras tener un respaldo.
-        </p>
-      </header>
+    <>
+      <Topbar
+        title="Exportar"
+        subtitle="Tu facturación para el contador, una historia clínica para derivar, o todo junto como respaldo"
+      />
 
-      <ExportPanel />
-    </div>
+      <main
+        className="flex-1 overflow-y-auto px-5 py-6 md:px-7"
+        style={{ background: "var(--canvas)" }}
+      >
+        <div className="mx-auto w-full max-w-5xl">
+          <ExportPanel />
+        </div>
+      </main>
+    </>
   );
 }

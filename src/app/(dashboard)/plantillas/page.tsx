@@ -1,3 +1,4 @@
+import { Topbar } from "@/components/layout/Topbar";
 import { createClient } from "@/lib/supabase/server";
 import { PlantillasManager } from "@/components/templates/PlantillasManager";
 import type { Area, Plantilla } from "@/server/actions/exerciseTemplates";
@@ -8,8 +9,9 @@ export const metadata = { title: "Plantillas · VitaeGest" };
 /**
  * Plantillas de ejercicios y pautas.
  *
- * Esta es la ruta que faltaba: el menú lateral la enlazaba pero la página
- * nunca se había construido, y por eso daba 404.
+ * Estructura igual que el resto del sistema: <Topbar> + <main> con el scroll.
+ * El Topbar es el que trae el botón ☰ del menú en celular; sin él, la página
+ * queda sin forma de volver al menú y hay que usar la flecha del navegador.
  */
 export default async function PlantillasPage() {
   const supabase = await createClient();
@@ -37,18 +39,20 @@ export default async function PlantillasPage() {
     ?.specialties ?? []) as Area[];
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold text-ink sm:text-3xl">
-          Plantillas de ejercicios y pautas
-        </h1>
-        <p className="mt-2 max-w-2xl text-muted">
-          Armá una vez las indicaciones que repetís siempre y después asignalas
-          en dos clics desde la ficha de cada paciente.
-        </p>
-      </header>
+    <>
+      <Topbar
+        title="Plantillas"
+        subtitle="Ejercicios y pautas que armás una vez y asignás en dos clics"
+      />
 
-      <PlantillasManager plantillas={plantillas} especialidades={especialidades} />
-    </main>
+      <main
+        className="flex-1 overflow-y-auto px-5 py-6 md:px-7"
+        style={{ background: "var(--canvas)" }}
+      >
+        <div className="mx-auto w-full max-w-5xl">
+          <PlantillasManager plantillas={plantillas} especialidades={especialidades} />
+        </div>
+      </main>
+    </>
   );
 }
