@@ -8,7 +8,7 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 // Refresca la sesión de Supabase en cada request y protege el área privada.
 // Rutas públicas: /login, /signup, el portal /p/<token> y el agendamiento
 // público de pacientes nuevos /agendar/<slug>.
-const PUBLIC_PREFIXES = ["/login", "/signup", "/p/", "/agendar/", "/auth"];
+const PUBLIC_PREFIXES = ["/login", "/signup", "/recuperar", "/nueva-password", "/p/", "/agendar/", "/auth"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
