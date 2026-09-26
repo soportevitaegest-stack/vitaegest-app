@@ -39,10 +39,10 @@ export default async function PlantillasPage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6">
       <header className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+        <h1 className="text-2xl font-semibold text-ink sm:text-3xl">
           Plantillas de ejercicios y pautas
         </h1>
-        <p className="mt-2 max-w-2xl text-slate-500">
+        <p className="mt-2 max-w-2xl text-muted">
           Armá una vez las indicaciones que repetís siempre y después asignalas
           en dos clics desde la ficha de cada paciente.
         </p>

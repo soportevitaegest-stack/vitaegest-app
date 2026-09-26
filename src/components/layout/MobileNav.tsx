@@ -105,7 +105,7 @@ export function MobileNav({
         aria-modal="true"
         aria-label="Menú de navegación"
         tabIndex={-1}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[82vw] max-w-[320px] flex-col bg-white shadow-lift outline-none transition-transform duration-300 ease-out motion-reduce:transition-none lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[82vw] max-w-[320px] flex-col bg-surface shadow-lg2 outline-none transition-transform duration-300 ease-out motion-reduce:transition-none lg:hidden ${
           abierto ? "translate-x-0" : "-translate-x-full"
         }`}
         // El notch y la barra de gestos de iOS.
@@ -114,14 +114,14 @@ export function MobileNav({
           paddingBottom: "env(safe-area-inset-bottom)",
         }}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-ink-line px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div className="min-w-0">
             <span className="block text-[15px] font-extrabold tracking-tight">
               <span className="text-ink">Vitae</span>
               <span className="text-coral">Gest</span>
             </span>
             {nombre && (
-              <span className="mt-1 block truncate text-xs text-ink-faint">
+              <span className="mt-1 block truncate text-xs text-muted">
                 {consultorio ?? nombre}
               </span>
             )}
@@ -130,7 +130,7 @@ export function MobileNav({
             type="button"
             onClick={() => setAbierto(false)}
             aria-label="Cerrar menú"
-            className="-mr-1 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl text-ink-soft transition-colors hover:bg-canvas hover:text-ink"
+            className="-mr-1 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl text-muted transition-colors hover:bg-canvas hover:text-ink"
           >
             <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
               <path
@@ -155,8 +155,8 @@ export function MobileNav({
                     aria-current={activo ? "page" : undefined}
                     className={`flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-medium transition-colors ${
                       activo
-                        ? "bg-primary-50 text-primary"
-                        : "text-ink-soft hover:bg-canvas hover:text-ink"
+                        ? "bg-primary-soft text-primary"
+                        : "text-muted hover:bg-canvas hover:text-ink"
                     }`}
                   >
                     <Icono className="h-5 w-5 shrink-0" />
